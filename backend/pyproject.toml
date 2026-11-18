@@ -1,0 +1,74 @@
+[project]
+name = "weather-routes"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "django>=6.1.3",
+    "django-ninja>=1.8.0",
+    "httpx>=0.28.1",
+    "psycopg[binary]>=3.3.9",
+    "pydantic-settings>=2.16.3",
+    "redis>=8.1.0",
+    "uvicorn>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "django-stubs>=6.1.2",
+    "import-linter>=2.16",
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
+    "pytest-django>=4.14.0",
+    "ruff>=0.17.5",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+extend-exclude = ["**/migrations/**"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D", "COM812", "ISC001", "CPY", "TD", "FIX", "TC", "N818"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"os.environ".msg = "Read configuration from core.env through django.conf.settings.APP_ENV"
+"os.getenv".msg = "Read configuration from core.env through django.conf.settings.APP_ENV"
+"os.putenv".msg = "Read configuration from core.env through django.conf.settings.APP_ENV"
+
+[tool.ruff.lint.per-file-ignores]
+"manage.py" = ["TID251"]
+"core/asgi.py" = ["TID251"]
+"**/tests/**" = ["S101", "PLR2004", "ARG001", "FBT001"]
+
+[tool.mypy]
+strict = true
+python_version = "3.14"
+plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
+exclude = ["^\\.venv/"]
+
+[tool.django-stubs]
+django_settings_module = "core.settings"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "core.settings_test"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-m 'not live' --strict-markers"
+filterwarnings = ["error"]
+markers = ["live: calls a real third-party API; opt-in with -m live"]
+testpaths = ["core", "planning", "rulesets", "shared", "tools"]
+
+[tool.importlinter]
+root_packages = ["core", "planning", "rulesets", "shared"]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Domain code and shared tables import no framework, I/O library or outer layer"
+type = "forbidden"
+source_modules = ["planning.domain", "rulesets.domain", "shared"]
+forbidden_modules = ["django", "ninja", "httpx", "pydantic_settings", "redis", "psycopg", "uvicorn", "core", "planning.adapters", "planning.services", "planning.api", "rulesets.services", "rulesets.models", "rulesets.admin"]
