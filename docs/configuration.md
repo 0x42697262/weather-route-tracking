@@ -83,7 +83,7 @@ Retry count and backoff are fixed constants in code, not settings (`engineering-
 | `TRIP_MAX_CHECKPOINTS_PER_ROUTE` | No | `200` | Requests that would place more are rejected with a hint to widen the spacing |
 | `ROUTE_ALTERNATIVES_REQUESTED` | No | `4` | Alternatives asked for in the first routing request (TomTom allows 0 to 5, `facts.md` F-40). More than 2 leaves spares for the distinctness check |
 | `ROUTE_MAX_EXTRA_REQUESTS` | No | `4` | Extra routing requests allowed per trip to reach 3 routes (`trip-planning.md`) |
-| `WEATHER_MAX_CELLS_PER_TRIP` | No | `300` | Weather cells per trip, checkpoints and heatmap together. Each cell costs one Open-Meteo call; the free tier allows 600 a minute and 10,000 a day (F-31, F-48) |
+| `WEATHER_MAX_CELLS_PER_TRIP` | No | `300` | Weather cells per request: a trip plan may use this many, and its heatmap request this many again (the two are separate requests and the server keeps no state between them, so a trip with an empty cache can cost up to twice this). Each cell costs one Open-Meteo call; the free tier allows 600 a minute and 10,000 a day (F-31, F-48) |
 | `FORECAST_CACHE_TTL_SECONDS` | No | `1800` | How long a forecast cell stays cached. Not yet matched to how often the provider updates (UNVERIFIED) |
 | `RATE_LIMIT_TRIPS_PER_MINUTE` | No | `10` | Trip plans allowed per client address per minute; the weather grid has the same limit, counted separately. Place search has a fixed 60 a minute |
 

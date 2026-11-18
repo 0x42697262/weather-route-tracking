@@ -213,7 +213,7 @@ shared tables. Shape:
     },
     "include_rest_stops": {
       "name": "include_rest_stops", "tier": "advanced", "text_key": "include_rest_stops",
-      "available": false, "default": false
+      "available": true, "default": true
     },
     "load_weight": {
       "name": "load_weight", "tier": "basic", "text_key": "load_weight", "available": true,

@@ -124,7 +124,8 @@ Bottom to top. Each layer is created once and only its data or paint changes.
 - Stretch and checkpoint geometry comes from the server already split and labeled; the client does
   not compute levels.
 - Attribution stays visible on the map: the tiles, "Weather data by Open-Meteo.com" with a link,
-  and TomTom's notice for routes (`facts.md` F-22, F-32, F-52; exact TomTom text is V-21).
+  and TomTom's notice for routes (`facts.md` F-22, F-32, F-52, F-61). The texts come from
+  `GET /api/v1/options` (`attribution`).
 - Ferry sections are drawn dashed and labeled "Ferry", in a neutral color (not rated). The route card
   shows the ferry distance and the warning to check with the operator.
 - Colors come from one token per risk level. A legend shows color and label together. Unknown has
@@ -171,8 +172,9 @@ Bottom to top. Each layer is created once and only its data or paint changes.
 
 - Range: hour 0 (departure) to hour 48, one-hour steps. The label shows the date and time for that
   hour in the device's time zone.
-- It drives two things: the heatmap hour, and each truck marker's position (interpolated between
-  checkpoints by arrival time; the marker stops at the destination).
+- It drives two things: the heatmap hour, and each truck marker's position, read from the
+  server's `positions_by_hour` for that hour (the server holds the marker at rest stops and at the
+  destination; the browser does not interpolate).
 - It is a real range input or a library slider with the slider ARIA roles.
 - The whole 48 hours are loaded once per trip. Moving the slider changes which precomputed hour the
   heatmap layer reads; it never fetches and never re-creates a layer. Updates are throttled to

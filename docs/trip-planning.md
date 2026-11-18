@@ -275,13 +275,15 @@ the adverse-conditions extension (F-21) are not modeled.
     because that hour's value covers the moment of arrival.
 - Rain rate is `rain` plus `showers`. `precipitation` is not used because it includes snow.
 - Keys are deduplicated across all routes, read from the cache in one `get_many`, and only the
-  misses are fetched, in batched multi-location requests (UNVERIFIED batch size and limits),
+  misses are fetched in multi-location requests of 50 cells (`open_meteo/constants.py`),
   concurrently under a semaphore.
 - A fetched cell is cached for its whole forecast range, so the heatmap and later trips reuse it.
 - **Quota decides the cell budget.** Each location in a request costs at least one provider call,
   so batching saves round trips but not quota (F-30). The free tier allows 10,000 calls a day
-  (F-31) and 600 a minute (F-48). The maximum cells per trip (checkpoints plus heatmap) is a
-  setting sized from that quota, and a provider call counter is logged per trip.
+  (F-31) and 600 a minute (F-48). `WEATHER_MAX_CELLS_PER_TRIP` caps the cells of each request:
+  the trip plan and its heatmap request each get that many, so a trip with an empty cache costs
+  at most twice the cap. One shared budget would need state kept between the two requests, which
+  the stateless server does not keep. `weather.fetched` logs the counts per request.
 - The adapter reads Open-Meteo's `X-RateLimit-Remaining` and `X-RateLimit-Reset` headers. When the
   next batch would exceed the remaining calls, it waits for the reset if that is within the
   request's time budget, and otherwise returns the cells it has; the rest are Unknown.
@@ -298,10 +300,9 @@ the adverse-conditions extension (F-21) are not modeled.
 ### No stored plans
 
 The server keeps no copy of a plan. A routing provider's terms can forbid caching or storing route
-results (Mapbox does, `facts.md` F-8; TomTom's terms are unverified, V-17), and a design that
-never stores them works under any
-provider's terms. Forecast cells are cached; they come from the weather provider, whose terms are
-checked separately (V-9).
+results (Mapbox does, `facts.md` F-8; TomTom does, F-52), and a design that never stores them
+works under any provider's terms. Forecast cells are cached: Open-Meteo's data is CC BY 4.0, which
+allows it with attribution (F-60).
 
 ## Heatmap grid (`POST /api/v1/weather-grid`)
 
