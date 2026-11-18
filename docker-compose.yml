@@ -1,0 +1,74 @@
+name: weather-routes
+
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  cache:
+    image: redis:8-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  migrate:
+    build: ./backend
+    image: weather-routes-web
+    env_file: .env
+    command: ["python", "manage.py", "migrate", "--noinput"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    image: weather-routes-web
+    env_file: .env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      cache:
+        condition: service_healthy
+    restart: unless-stopped
+
+  caddy:
+    build:
+      context: .
+      dockerfile: caddy/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_MAP_STYLE_URL: ${VITE_MAP_STYLE_URL:-https://tiles.openfreemap.org/styles/liberty}
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST}
+      ADMIN_URL: ${ADMIN_URL}
+      CADDY_ACME_EMAIL: ${CADDY_ACME_EMAIL:-}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
