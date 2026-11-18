@@ -1,0 +1,13 @@
+services:
+  migrate:
+    environment:
+      ROUTE_PROVIDER: fake
+      GEOCODER: fake
+      WEATHER_PROVIDER: fake
+
+  web:
+    environment:
+      ROUTE_PROVIDER: fake
+      GEOCODER: fake
+      WEATHER_PROVIDER: fake
+      RATE_LIMIT_TRIPS_PER_MINUTE: "120"
