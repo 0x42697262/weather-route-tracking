@@ -38,6 +38,7 @@ services:
 
   web:
     image: weather-routes-web
+    pull_policy: never
     env_file: .env
     depends_on:
       migrate:

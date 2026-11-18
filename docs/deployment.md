@@ -19,7 +19,7 @@ configuration.
 
 | Service | Image | Job |
 |---|---|---|
-| `migrate` | Same image as `web` | Runs `migrate` once and exits; `web` starts only after it succeeds |
+| `migrate` | Builds the image `web` uses | Runs `migrate` once and exits; `web` starts only after it succeeds. `web` has `pull_policy: never`, so Compose never tries to download the locally built image from a registry |
 | `web` | Built from `backend/` | Django under uvicorn (ASGI), listening inside the Compose network only |
 | `db` | PostgreSQL | Rule set versions, staff accounts, admin log |
 | `cache` | Redis | Forecast cells |
