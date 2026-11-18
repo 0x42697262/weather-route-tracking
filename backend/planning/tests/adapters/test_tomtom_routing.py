@@ -9,7 +9,12 @@ import httpx
 import pytest
 from django.conf import settings
 
-from planning.adapters.tomtom.client import TomTomRouteProvider, build_tomtom_route_provider
+from planning.adapters.tomtom.client import (
+    TomTomRouteProvider,
+    build_tomtom_route_provider,
+    per_process_limiter,
+)
+from planning.adapters.tomtom.constants import ROUTING_MAX_CALLS_PER_S
 from planning.adapters.tomtom.protocol import parse_routes, route_path, route_query
 from planning.domain.values import (
     Avoidance,
@@ -329,3 +334,12 @@ async def test_factory_uses_settings_and_never_logs_the_key(
     logged = json.dumps([record.__dict__ for record in caplog.records], default=str)
     assert "upstream.retry" in logged
     assert key not in logged
+
+
+@pytest.mark.parametrize(("workers", "expected_per_s"), [(1, 5.0), (2, 2.5), (4, 1.25)])
+def test_the_routing_limit_is_split_across_web_processes(
+    workers: int, expected_per_s: float
+) -> None:
+    env = settings.APP_ENV.model_copy(update={"web_workers": workers})
+
+    assert per_process_limiter(ROUTING_MAX_CALLS_PER_S, env).max_calls_per_s == expected_per_s

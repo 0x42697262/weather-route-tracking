@@ -390,7 +390,7 @@ conversion to metric). Adding a vendor is one new folder and one entry in the wi
 |---|---|
 | Route provider down or times out | Catalog error; nothing to show |
 | No route between the points (TomTom `NO_ROUTE_FOUND`, e.g. an island with no road link, or `MAP_MATCHING_FAILURE`, a point not near any road) | `no_road_route` (422): "There is no road route between these two places." |
-| Provider returns 429 (over 5 requests a second) | Retried with backoff; then the catalog error for a busy provider |
+| Provider returns 429 (over 5 requests a second) | Each web process allows 5 ÷ `WEB_WORKERS` requests a second, so all processes together stay at 5; a 429 is still retried with backoff, then the catalog error for a busy provider |
 | Fewer than 3 routes after topping up | Normal result with a notice |
 | A top-up request fails | Skipped; the routes already found are returned |
 | Some weather cells fail | Routes returned; affected checkpoints Unknown; a warning says how many |

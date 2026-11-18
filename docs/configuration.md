@@ -28,7 +28,7 @@ section 4.7.
 | `ADMIN_URL` | Yes | none | Path of the staff admin, ending in `/`. Use a non-default value |
 | `BEHIND_PROXY` | No | `true` | Trust the scheme and client address forwarded by Caddy. `false` only when Django is reached directly |
 | `LOG_LEVEL` | No | `INFO` | Minimum log level |
-| `WEB_WORKERS` | No | `2` | ASGI worker processes in `web` |
+| `WEB_WORKERS` | No | `2` | ASGI worker processes in `web`. TomTom's per-key limit (5 a second) is split evenly across them, so each process allows 5 ÷ `WEB_WORKERS` |
 
 ## Database and cache
 

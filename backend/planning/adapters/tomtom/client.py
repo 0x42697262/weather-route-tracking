@@ -50,8 +50,11 @@ from planning.errors import (
     UpstreamUnavailable,
 )
 
-ROUTING_LIMITER = RateLimiter(max_calls_per_s=ROUTING_MAX_CALLS_PER_S)
-PLACES_LIMITER = RateLimiter(max_calls_per_s=PLACES_MAX_CALLS_PER_S)
+
+def per_process_limiter(max_calls_per_s: float, env: AppEnv) -> RateLimiter:
+    """A limiter for one web process: TomTom's limit applies to the key, so the per-second
+    allowance is split evenly across `WEB_WORKERS` processes."""
+    return RateLimiter(max_calls_per_s=max_calls_per_s / env.web_workers)
 
 
 def _json(response: httpx.Response) -> object:
@@ -195,7 +198,7 @@ def _client(env: AppEnv, transport: httpx.AsyncBaseTransport | None) -> httpx.As
 def build_tomtom_route_provider(
     env: AppEnv, transport: httpx.AsyncBaseTransport | None = None
 ) -> TomTomRouteProvider:
-    """The routing adapter from settings, sharing the process-wide routing limiter.
+    """The routing adapter from settings, with this process's share of the routing limit.
 
     Raises:
         ValueError: `TOMTOM_API_KEY` is not set.
@@ -203,14 +206,17 @@ def build_tomtom_route_provider(
     return TomTomRouteProvider(
         _client(env, transport),
         _api_key(env),
-        Retrier(provider=RouteProviderName.TOMTOM.value, limiter=ROUTING_LIMITER),
+        Retrier(
+            provider=RouteProviderName.TOMTOM.value,
+            limiter=per_process_limiter(ROUTING_MAX_CALLS_PER_S, env),
+        ),
     )
 
 
 def build_tomtom_geocoder(
     env: AppEnv, transport: httpx.AsyncBaseTransport | None = None
 ) -> TomTomGeocoder:
-    """The place search adapter from settings, sharing the process-wide places limiter.
+    """The place search adapter from settings, with this process's share of the places limit.
 
     Raises:
         ValueError: `TOMTOM_API_KEY` is not set.
@@ -218,5 +224,8 @@ def build_tomtom_geocoder(
     return TomTomGeocoder(
         _client(env, transport),
         _api_key(env),
-        Retrier(provider=GeocoderName.TOMTOM.value, limiter=PLACES_LIMITER),
+        Retrier(
+            provider=GeocoderName.TOMTOM.value,
+            limiter=per_process_limiter(PLACES_MAX_CALLS_PER_S, env),
+        ),
     )
