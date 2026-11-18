@@ -44,6 +44,12 @@ writes them as "over". Every other edge value belongs to the higher level.
 
 Conversion factors are exact: 1 mi = 1.609344 km, 1 in = 25.4 mm, 1 lb = 0.45359237 kg.
 
+Every converted threshold and every provider value is rounded to 9 decimals
+(`shared/units.py` `round_measure`). Without it, 3.0 in/h became 7.619999999999999 cm/h and a
+forecast of exactly 7.62 cm/h counted as "over" (No Travel instead of Severe); rain + showers
+summed to 25.400000000000002 mm/h the same way. A test feeds raw provider values on every edge
+through the adapter parser and the classifier.
+
 ## Step 2: apply load rules
 
 A load rule says: when a condition's value is inside a range (lower bound inclusive, upper bound
@@ -90,7 +96,7 @@ end is Unknown, the stretch is Unknown.
 - It overstates. When the level changes between two checkpoints, the whole stretch counts at the
   worse level, so the risky distance can be too long by up to one spacing per change.
 
-### Method `refine`
+### Method `refine` (the seed rule set still uses `worse_end`)
 
 Start from the same checkpoints. Wherever two neighbors have **different** levels, take one more
 sample at the midpoint (its own arrival time and forecast, classified the same way) and repeat on
@@ -104,6 +110,12 @@ depth limit is reached. The remaining short mixed stretches take the worse end.
   forecast cell and add nothing.
 - Samples added by refinement are not shown as checkpoints. The driver still sees checkpoints at
   the spacing they chose.
+- Unknown counts as its own value, so the edge of missing weather is located the same way as a
+  change of level.
+- The depth limit is `REFINE_MAX_DEPTH` (4). Refinement spends only the weather cells the trip
+  has left under `WEATHER_MAX_CELLS_PER_TRIP` (`trip-planning.md`, Weather lookup).
+- The route's `refined_samples` and the trip's `weather.refined_samples` say how many samples
+  were added.
 
 ### Designs considered
 
@@ -131,11 +143,19 @@ key, from the highest score down. Travel time is the full elapsed time, rest inc
 
 - `average_risk` = sum of (stretch score × stretch km) ÷ sum of stretch km, over stretches with a
   known level.
-- Distances are rounded to a fixed precision before comparing (constant in `planning/constants.py`),
-  so floating-point noise never decides a ranking.
+- Values are rounded before comparing (constants in `planning/domain/risk_constants.py`):
+  distances to 2 decimals, average risk to 3, travel time to whole seconds, so floating-point
+  noise never decides a ranking.
+- Routes that tie on every entry keep their order from the route search (the fastest first).
+- A route with no known weather sorts after every route that has some, and is never
+  recommended. "Known weather" means distance rated from a forecast; a ferry rated by the
+  constant `ferry_level` does not count, so a route that is all Unknown plus a rated ferry is not
+  recommended.
 
 **Recommendation:** the first route in that order, unless every route has distance at a level that
 blocks a recommendation (No Travel); then there is no recommendation and the response says why.
+The reason is `every_route_blocked` when every route that has known weather is blocked, and
+`no_known_weather` when no route has any.
 
 A route with No Travel distance is still returned and drawn, with a warning.
 
@@ -144,10 +164,53 @@ A route with No Travel distance is still returned and drawn, with a warning.
 The combined-risk heatmap uses steps 1 to 3 on each grid cell and hour, with the load the driver
 entered. The same function classifies checkpoints and cells; there is one implementation.
 
+## Ferry stretches
+
+A stretch on a ferry section of the route (the provider marks it) is not classified from weather.
+Its level is the rule set's constant `ferry_level`, default `null`, meaning **not rated**. A
+not-rated ferry stretch:
+
+- is counted as `ferry_km` in the route summary, separately from every level and from Unknown;
+- is left out of the ranking key and out of the average risk, like Unknown;
+- adds a warning to the route ("Includes a ferry crossing; check with the operator").
+
+Staff may set `ferry_level` to one of the five levels; ferry stretches then count at that level
+like any other stretch. Checkpoints that fall on a ferry section still show the forecast, for
+information only: their `level` is null and `weather_level` holds the forecast's level.
+
+- A route with any ferry stretch carries the `ferry_crossing` warning, also when staff set a
+  `ferry_level`.
+- A checkpoint on a ferry keeps its weather level for the land stretches on either side of the
+  ferry; only the ferry interval itself takes `ferry_level`.
+
 ## Unknown weather
 
 Unknown distance is reported per route and warned about. It does not enter the ranking key and is
 left out of the average risk.
+
+It can stop a recommendation. The rule set's `max_unknown_share` (default 0.25; `null` means no
+limit) is the largest share of a route's length with no forecast that a recommended route may
+have; the share is rounded to 4 decimals and exactly the limit is allowed. A route over it keeps
+its place in the ranking order but is skipped for the recommendation, with
+`not_recommendable_reason: too_much_unknown_weather` on the route.
+
+Why: Unknown is left out of the ranking key so that missing data never counts as safe or as
+dangerous. But without a limit, a route that is 99% Unknown and 1% Low ranked above a fully
+forecast route with some High distance and was recommended, which tells a driver the opposite of
+what is known. The limit keeps the ranking order honest and only stops recommending a route the
+app knows little about. Staff who prefer the plain ranking set the limit to `null`.
+
+The exclusions are checked per route in this order: `no_known_weather`, `blocked` (distance at a
+level that blocks a recommendation), `too_much_unknown_weather`; the first that applies is the
+route's reason. When no route is recommended, the trip's reason is the latest of these that
+stopped a route, so the driver hears the most specific cause: `no_known_weather` when no route
+has a forecast, `too_much_unknown_weather` when some unblocked route was stopped only by the
+limit, otherwise `every_route_blocked`.
+
+Which forecast hour is read: an instant value (wind) reads the nearest hour, and at exactly half
+past it reads the later one. A value summed over the preceding hour (rain, snow) reads the first
+hour at or after the arrival. An arrival before the first forecast hour or after the last one has
+no value, so that condition is Unknown.
 
 ## Wind
 
@@ -156,5 +219,6 @@ The wind condition is sustained wind speed. Gusts would be a separate condition
 
 ## Log events
 
-`checkpoint.classified` (inputs, level, decided_by), `route.summarized`, `routes.ranked` (the key of
-every route), `recommendation.none` (reason). Names live in `planning/events.py`.
+`checkpoint.classified` (DEBUG: values, load_kg, level, decided_by), `refine.sampled` (depth,
+samples), `route.summarized`, `routes.ranked` (the key of every route), `recommendation.none`
+(reason). Names live in `planning/events.py`; fields are listed in `trip-planning.md`.

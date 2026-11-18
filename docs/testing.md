@@ -17,6 +17,7 @@ Scope for the first version: **backend rules tested fully, frontend lightly.**
 | `planning/domain/checkpoints.py` | Origin and destination always present; spacing longer than the route; last multiple near the destination dropped; positions interpolated on a known line; the cap |
 | `planning/domain/timeline.py` | Truck speed: factor 1.0 and below 1.0; the cap applies only to segments above it; no cap; a provider with totals only |
 | `planning/domain/timeline.py` | Rest clock: break exactly at 8 hours of driving; off duty at 11 hours of driving and at 14 hours of shift; a segment split at the limit; rest switched off by the trip option; under 8 hours of driving gives the same result on and off |
+| `planning/domain/stretches.py` (ferries) | A ferry stretch with `ferry_level` null: counted as ferry distance, out of ranking and average, warning set; with `ferry_level` set: counted at that level; a checkpoint on a ferry keeps its forecast but no level |
 | `planning/domain/route_distinct.py` | Identical lines; fully separate lines; overlap just under and just over the limit; drive time just inside and outside the limit |
 | `planning/domain/stretches.py` | Worse of two ends; Unknown end; distances per level add up to the route distance |
 | `planning/domain/ranking.py` | Each key decides when the earlier ones tie; rounding prevents noise from deciding; every route with No Travel gives no recommendation; one route |
@@ -47,10 +48,11 @@ Through `weather_grid`: a normal grid; route lines over the caps rejected before
 
 ### Adapters (`httpx.MockTransport`, recorded responses)
 
-- Mapbox routing and geocoding, Open-Meteo: the request built (path, query, units), a recorded
+- TomTom routing and place search, Open-Meteo: the request built (path, query, units), a recorded
   response parsed into domain objects in metric, a malformed response rejected, a timeout mapped to
   the named error, a retry on a retryable status.
-- Recorded responses live under `tests/fixtures/` with keys removed.
+- Recorded responses live under `tests/fixtures/` with keys removed. Routing fixtures are trimmed
+  copies of real TomTom responses (a real response is 1 to 3.5 MB, F-47).
 - Live calls are opt-in (`@pytest.mark.live`) and skipped by default.
 
 ### API
@@ -72,11 +74,85 @@ saved version cannot be edited.
   appear, the verdict line shows the recommendation, moving the slider changes the heatmap hour
   label.
 
+Built (`npm run verify` runs them with lint, the comment check and the type check):
+
+| File | Covers |
+|---|---|
+| `trip-form/TripForm.test.tsx` | Missing places and load caught before any request; a server field error shown at its field (`aria-describedby`, `aria-invalid`); an error without fields as an alert; "Custom options in use" and its reset |
+| `trip-form/draft.test.ts` | The request: load in the display unit, spacing as entered, departure now or picked; every missing field listed; dotted server paths mapped to fields; the departure window; custom options and the reset request |
+| `routes/RouteList.test.tsx` | Cards in rank order with rank, label, time, distance and distance per level; a route warning with its distance; the fewer-than-3 notice; tapping selects |
+| `routes/verdict.test.tsx` | The verdict in each state: nothing asked, loading, recommendation (with unknown distance), no recommendation, failure |
+| `map/geojson.test.ts`, `map/layers.test.ts` | Stretch, checkpoint, truck and grid GeoJSON; bounds; level colors; heatmap paint read from feature state; stable layer ids |
+
+Fixtures are typed with the generated schema (`src/test/fixtures.ts`). `src/test/setup.ts` replaces
+`fetch` with a stub each test can program (`setFetchHandler`), so API errors run through the real
+client and error parsing.
+
+### End-to-end (`frontend/e2e/`, Playwright 1.65.1)
+
+Run against the Compose stack with fake providers, then put the normal stack back:
+
+    docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --build
+    cd frontend && npm run e2e
+    cd .. && docker compose up -d --build
+
+`docker-compose.e2e.yml` sets `ROUTE_PROVIDER`, `GEOCODER` and `WEATHER_PROVIDER` to `fake` and
+raises the trip rate limit to 120 a minute. The base URL is `https://localhost` (`E2E_BASE_URL`
+overrides it); HTTPS errors from Caddy's local certificate are ignored; the browser time zone is
+America/Chicago. If the installed Chromium does not match Playwright's build, set
+`E2E_CHROMIUM_PATH` to its executable (`facts.md` F-67).
+
+| Spec | Checks |
+|---|---|
+| `plan-trip.spec.ts` | Pick Dallas and Oklahoma City from the suggestions, enter a load, find routes: 3 cards, the verdict names a route, the first card is recommended; the heatmap becomes ready; 6 slider steps change the hour label and the value text; the Wind layer can be chosen |
+| `slider-performance.spec.ts` | On an emulated phone (390 x 844, scale 3, touch, CPU 4x slower), a long trip, dragging the slider from hour 0 to 48 makes no network request; frame rate and frame times are printed and attached (`frontend.md`, Time slider) |
+
+Last run, 2026-11-17: both passed (about 25 s).
+
+## Reference trips
+
+Real trips used to check the app end to end, from well-mapped corridors to places with little
+data. The first run (2026-11-17, `facts.md` F-46, F-54, F-55) gave the results below. Repeat them
+after each step that changes routing, weather or ranking, and update this table when a result
+changes.
+
+### Well-mapped
+
+| Trip | First result | What it shows |
+|---|---|---|
+| Dallas TX to Oklahoma City OK | 5 routes, 3 kept | The normal case |
+| Dallas TX to Houston TX | 5 routes, 3 kept | The normal case |
+| Chicago IL to Denver CO | 5 routes, 3 kept; crosses a time zone | Long trip, rest stops, a zone change in arrival times |
+| Los Angeles CA to Las Vegas NV | 5 routes, 3 kept; one request took 10.3 s | Slow provider responses |
+| Denver CO to Salt Lake City UT | 3 routes, 3 kept | Mountain passes, snow in winter |
+| Seattle WA to Portland OR | 5 routes, 2 kept | A top-up round is needed |
+
+### Sparse data
+
+| Trip | First result | What it shows |
+|---|---|---|
+| Manila to Baguio, Benguet (Philippines) | 5 routes, 1 kept; alternatives over 2 times slower | Fewer than 3 routes after top-up; the notice |
+| Tuguegarao, Cagayan to Legazpi, Albay (Philippines) | 5 routes, 3 kept; 1,113 km in 26.2 h; ferries | Very long and slow; ferries; rest rules outside the US |
+| Davao City to Cotabato City (Philippines) | 5 routes, 3 kept | Typical provincial roads |
+| Manila to Cebu City (Philippines) | 5 routes, 3 kept; 2 ferries; up to 14% of points without truck data | Island crossings by ferry |
+| Ulaanbaatar to Khovd (Mongolia) | 5 routes, 3 kept; 1,543 km | Long, sparse roads |
+| San Diego CA to Tijuana (Mexico) | 5 routes, 3 kept; 2 countries | A border crossing |
+
+### No road route
+
+| Trip | First result | What it shows |
+|---|---|---|
+| Basco, Batanes to Manila (Philippines) | HTTP 400, `NO_ROUTE_FOUND` | The "no road route" error, before any weather call |
+| Nome AK to Anchorage AK | HTTP 400, `NO_ROUTE_FOUND` | The same, inside the US |
+
+Recorded responses from these trips (keys removed, geometry trimmed) are the routing fixtures for
+adapter and service tests.
+
 ## Checked by hand, recorded in the verification checklist
 
-- Slider drag stays smooth on a phone (frame rate from the browser performance panel).
+- Slider drag stays smooth on a real phone (frame rate from the browser performance panel); the emulated measurement is automated above.
 - The layout at phone, tablet and desktop widths.
-- A real trip against the live providers after each deploy.
+- The reference trips above against the live providers after each deploy.
 
 ## Left out of the first version
 

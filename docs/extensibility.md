@@ -54,7 +54,8 @@ domain code does not change, because it already reads the table as data.
 | New weather condition (gusts, visibility, ice, temperature) | One row in the conditions table; the field mapping in each weather adapter; bands in a rule set | Classification iterates over the rule set's conditions. The weather adapter requests the variables the active rule set uses. Heatmap layers come from the server |
 | Editable ranking order | Move the list of ranking keys from a constant into the rule set | The key is already built from a list of named functions |
 | Another routing, geocoding or weather provider | One adapter folder; one wiring row | Services depend on protocols; all vendor specifics are in the adapter |
-| Truck-aware routing (weight, height) | An adapter for a provider that supports it (`facts.md` F-11) | The route request object already carries the load weight; adapters that cannot use it ignore it |
+| More truck restrictions (height, length, axle weight, hazardous goods) | New fields on the trip or the rule set, passed by the adapter | The route request object already carries the vehicle; TomTom accepts these parameters (`facts.md` F-11, F-43) |
+| A car-only routing provider | One adapter folder | The speed factor and cap already turn any provider's times into truck estimates |
 | Different driving and rest rules (another country) | New numbers in the rule set | Speed and rest limits are fields, not constants (`trip-planning.md`) |
 | Smarter stops (real truck stops, waiting out a storm) | A new arrival-time function behind the same interface | Arrival times come from one pure function that returns elapsed time and stops |
 | A different way to turn samples into stretches | One function and one table row | Stretch method is chosen by key |

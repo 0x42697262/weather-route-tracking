@@ -330,7 +330,7 @@ admins), never by customers. There are four tiers, each with one home:
   dispatch tables, not new `if` chains.
 - Domain rules take settings/threshold objects, so new knobs don't change call sites.
 - **Never branch on one specific member of a set** (`if level == SEVERE`, `if variable == "wind"`,
-  `if provider == "mapbox"`). Give the set a table with the properties code needs (order, flags,
+  `if provider == "tomtom"`). Give the set a table with the properties code needs (order, flags,
   units, text key, color token) and iterate over it. Adding a member is then one table row.
   `docs/extensibility.md` lists the sets this applies to.
 - Anything the frontend must list (levels, conditions, heatmap layers, spacings, units) comes from

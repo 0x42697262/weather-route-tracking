@@ -15,7 +15,7 @@ Drivers use this on a phone or tablet in the cab. The answer has to be readable 
 - Departure date and time
 - Load weight
 - Checkpoint spacing (optional; defaults to 25 miles)
-- Whether to add rest stops (optional, under Advanced options; on by default once built)
+- Whether to add rest stops (optional, under Advanced options; on by default)
 
 No account is needed. Nothing is stored per driver.
 
@@ -70,13 +70,25 @@ above them are No Travel. Wind bands are continuous: 34.9 mph is Moderate, 35.0 
 Each stretch of road between two neighboring checkpoints takes the **worse** level of its two ends.
 A route's distance at each level is the sum of its stretches at that level.
 
+### Ferries
+
+Some routes include a ferry crossing, where the truck rides a roll-on/roll-off ferry (for example
+between Philippine islands). Ferries are assumed to run as scheduled. A ferry stretch is not rated
+by the weather thresholds, which are written for driving: the weather data has no wave
+information, and whether a ferry sails in bad weather is the operator's decision. Instead it takes
+a constant from the rule set, by default **not rated**: it is drawn and labeled "Ferry", its
+distance is reported but left out of the ranking and the average, and the route shows a warning to
+check with the ferry operator. Ferry time is the routing provider's estimate and counts as time not
+driving.
+
 ### Arrival times
 
 Arrival time at a checkpoint is the departure time, plus the truck's driving time to that point,
 plus any rest taken before it.
 
-- **Truck driving time** starts from the routing provider's car speeds, scaled by a factor
-  (default 1.0) and capped at a truck top speed (default 65 mph).
+- **Truck driving time** comes from the routing provider's truck routing, which takes the truck's
+  weight (empty weight, default 32,500 lb, plus load) and top speed. It is then scaled by a factor (default 1.0) and
+  capped at the truck top speed (default 65 mph).
 - **Rest** follows a driving-and-rest clock: a 30-minute break after 8 hours of driving, and 10
   hours off after 11 hours of driving or 14 hours on shift. A driver can turn it off for a trip where the truck keeps moving, such as two
   drivers taking turns.
@@ -98,6 +110,12 @@ Travel distance, the app recommends none and says so.
 
 A stretch with no forecast is Unknown. Its distance is shown with a warning, stays out of the
 ranking, and is left out of the average.
+
+A route with too much Unknown distance is not recommended: by default a route of which more than
+25% has no forecast cannot be the recommendation, and the next route in the ranking is recommended
+instead. Its card says why. If no route qualifies, the app recommends none and says so. Staff set
+the share in the rule set (`max_unknown_share`); setting it to empty removes the limit, so Unknown
+distance then never stops a recommendation.
 
 ## Times
 
@@ -149,16 +167,22 @@ panel. The first version has a light theme only.
 
 ## Limitations of the first version
 
-- Truck driving times are estimated from car times with a factor and a top speed. Lower truck
-  speed limits in individual states, grades and truck-restricted roads (height, weight, hazardous
-  goods) are not modeled.
+- Truck routing uses weight and top speed only. Vehicle height, length, axle weight and hazardous
+  goods are not sent, so restrictions on those are not considered.
 - Rest stops are placed where a limit is reached, not at real truck stops. Weekly hour limits are
   not modeled.
 - Routes added by topping up (avoiding tolls or highways, or through a detour point) can be less
   natural than a provider's own alternatives.
-- Routing uses Mapbox. TomTom, HERE and OpenRouteService are the alternatives, not built. Before
-  commercial use, Mapbox's license for in-vehicle applications must be settled or the provider
-  changed (`adr/0002-providers-behind-protocols.md`).
+- Routing and place search use TomTom. HERE, OpenRouteService and Mapbox are the alternatives, not
+  built. Before commercial use, TomTom needs a subscription plan
+  (`adr/0002-providers-behind-protocols.md`).
+- Rest rules default to United States federal limits and apply to every trip, including trips in
+  other countries; staff can change them, but there is one set for all countries.
+- Border crossing wait times are not modeled.
+- Ferry crossings are assumed to run. Their durations are the routing provider's estimates; ferry
+  schedules, waiting time and cancellations are not modeled.
+- On the free weather tier, about two trips a minute can be planned with no cached weather; more
+  are slower or show some Unknown weather.
 - A narrow band of bad weather between two calm checkpoints is not seen by the route summary; the
   heatmap still shows it.
 - Weather beyond the forecast range is shown as unknown, never as Low.

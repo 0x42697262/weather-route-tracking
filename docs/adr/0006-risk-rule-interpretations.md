@@ -20,8 +20,13 @@ affects the ranking, how checkpoint levels become distances, and how the average
   method `refine`), once that step is built.
 - **Average risk:** levels scored 0 to 4, weighted by distance in km.
 - **Unknown weather:** a stretch with no forecast has no level. Its distance is reported and warned
-  about, stays out of the ranking key, and is left out of the average.
+  about, stays out of the ranking key, and is left out of the average. A route with more than a
+  rule-set share of Unknown distance (default 25%, `null` = no limit) is not recommended
+  (owner decision, 2026-11-17; `risk-model.md` "Unknown weather").
 - **Wind:** the wind condition is sustained wind speed, not gusts.
+- **Ferries:** ferries are assumed to run. A ferry stretch is not rated from weather (there is no
+  wave data, and sailing is the operator's call); it takes the rule set constant `ferry_level`,
+  by default not rated, and the route carries a warning.
 
 ## Consequences
 

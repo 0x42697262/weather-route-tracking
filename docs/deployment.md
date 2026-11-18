@@ -19,10 +19,11 @@ configuration.
 
 | Service | Image | Job |
 |---|---|---|
-| `web` | Built from `backend/` | Django under an ASGI server, listening inside the Compose network only |
+| `migrate` | Same image as `web` | Runs `migrate` once and exits; `web` starts only after it succeeds |
+| `web` | Built from `backend/` | Django under uvicorn (ASGI), listening inside the Compose network only |
 | `db` | PostgreSQL | Rule set versions, staff accounts, admin log |
 | `cache` | Redis | Forecast cells |
-| `caddy` | Caddy | HTTPS; serves the built frontend; proxies the API, admin and Django static paths to `web` |
+| `caddy` | Built from `caddy/Dockerfile` | HTTPS; serves the built frontend and Django's static files; proxies the API and admin to `web` |
 
 Caddy runs as a Compose service, so the whole stack starts with one command and behaves the same
 locally and on the server.
@@ -35,11 +36,19 @@ Only ports 80 and 443 are open to the world. The database and cache are not publ
 |---|---|
 | `/api/*` | `web` |
 | The admin path (`ADMIN_URL`) | `web` |
-| Django static files | `web` (served by the app) |
+| `/django-static/*` | Files collected into the Caddy image at build time |
 | Everything else | The built frontend files, with the single-page fallback to `index.html` |
 
 Compression is on. Caddy passes the client address and scheme to Django, and Django trusts those
 headers only from the proxy.
+
+### Why Caddy serves Django's static files
+
+WhiteNoise, the usual way for Django to serve its own static files, has no async support: under
+an ASGI server every static response logged a warning and was converted to sync. The Caddy image
+runs `collectstatic` in its own build stage instead, so static files never reach Django. The
+Caddy Dockerfile builds everything it needs itself, because the legacy Docker builder (no
+buildx) ignores Compose `additional_contexts` and silently reused an old image.
 
 ## Configuration
 
@@ -48,7 +57,7 @@ headers only from the proxy.
 - The server is set up from an environment file that is never committed. On the instance it lives
   outside the repository checkout, readable only by the deploy user. It holds the real host name
   (`PUBLIC_HOST`), which Caddy and Django both read.
-- Required secrets: Django secret key, database password, the routing and geocoding provider token.
+- Required secrets: Django secret key, database password, the TomTom API key.
 - Production values: `DEBUG` off, the allowed host and CORS origin set to the public address, the
   admin path set to a non-default value.
 
