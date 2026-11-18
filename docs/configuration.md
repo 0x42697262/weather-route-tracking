@@ -28,6 +28,7 @@ section 4.7.
 | `ADMIN_URL` | Yes | none | Path of the staff admin, ending in `/`. Use a non-default value |
 | `BEHIND_PROXY` | No | `true` | Trust the scheme and client address forwarded by Caddy. `false` only when Django is reached directly |
 | `LOG_LEVEL` | No | `INFO` | Minimum log level |
+| `WEB_WORKERS` | No | `2` | ASGI worker processes in `web` |
 
 ## Database and cache
 
@@ -38,30 +39,39 @@ section 4.7.
 | `POSTGRES_DB` | Yes | none | Database name. The PostgreSQL container reads the same variable |
 | `POSTGRES_USER` | Yes | none | Database user. Shared with the container |
 | `POSTGRES_PASSWORD` | Yes | none | Database password. Shared with the container |
-| `REDIS_URL` | No | `redis://cache:6379/0` | Cache for forecast cells only (route results are never cached, `facts.md` F-8) |
+| `POSTGRES_CONNECT_TIMEOUT_SECONDS` | No | `5` | Database connect timeout; bounds how long `/api/ready` waits |
+| `REDIS_URL` | No | `redis://cache:6379/0` | Cache for forecast cells, validated rule sets (one day, keyed by version) and rate limit counters. Route results are never cached (`facts.md` F-8) |
 
 ## Providers
 
 | Variable | Required | Default | Meaning |
 |---|---|---|---|
-| `ROUTE_PROVIDER` | No | `mapbox` | Routing adapter. Only `mapbox` exists in the first version |
-| `GEOCODER` | No | `mapbox` | Place search adapter. Only `mapbox` exists |
-| `WEATHER_PROVIDER` | No | `open_meteo` | Weather adapter. Only `open_meteo` exists |
-| `MAPBOX_ACCESS_TOKEN` | When a Mapbox adapter is chosen | none | Mapbox token. Server-side only; the browser never sees it |
-| `MAPBOX_BASE_URL` | No | `https://api.mapbox.com` | Mapbox API base URL |
+| `ROUTE_PROVIDER` | No | `tomtom` | Routing adapter: `tomtom` or `fake` |
+| `GEOCODER` | No | `tomtom` | Place search adapter (TomTom Places Search, F-50): `tomtom` or `fake` |
+| `WEATHER_PROVIDER` | No | `open_meteo` | Weather adapter: `open_meteo` or `fake` |
+| `TOMTOM_API_KEY` | When a TomTom adapter is chosen | none | TomTom API key. Server-side only; the browser never sees it |
+| `TOMTOM_BASE_URL` | No | `https://api.tomtom.com` | TomTom API base URL |
 | `OPEN_METEO_BASE_URL` | No | `https://api.open-meteo.com` | Open-Meteo base URL. Paid plans use `https://customer-api.open-meteo.com` (`facts.md` F-31) |
 | `OPEN_METEO_API_KEY` | With a paid plan | empty | Open-Meteo key, sent as `apikey`. Empty means the free API, which is non-commercial only |
 
 A provider name that has no adapter, or a chosen adapter whose token is missing, stops startup with
 a message naming the variable.
 
+**Fake providers** (`fake`, `planning/adapters/fake/`) need no key and call nothing. Routing draws
+three bowed lines between any two points (the straight fastest one and two slower alternatives)
+and supports no avoidances or via points, so top-up rounds are skipped. Place search knows six
+fixed US cities (Dallas, Oklahoma City, Houston, Austin, Denver, Chicago). Weather is a
+deterministic pattern that drifts with time and meets every level, including narrow No Travel
+bands. Use them for demos and frontend work without a TomTom key; their data carries its own
+attribution line.
+
 ## Outbound calls
 
 | Variable | Required | Default | Meaning |
 |---|---|---|---|
 | `HTTP_CONNECT_TIMEOUT_SECONDS` | No | `5` | Connect timeout for every provider call |
-| `HTTP_READ_TIMEOUT_SECONDS` | No | `15` | Read timeout for every provider call |
-| `OUTBOUND_CONCURRENCY` | No | `8` | Maximum provider calls in flight per request |
+| `HTTP_READ_TIMEOUT_SECONDS` | No | `30` | Read timeout for every provider call. A live truck route request took 10.3 s (`facts.md` F-54) |
+| `OUTBOUND_CONCURRENCY` | No | `8` | Maximum Open-Meteo batch requests in flight per call. Routing requests are always sequential |
 
 Retry count and backoff are fixed constants in code, not settings (`engineering-guidelines.md` 4.2).
 
@@ -69,12 +79,13 @@ Retry count and backoff are fixed constants in code, not settings (`engineering-
 
 | Variable | Required | Default | Meaning |
 |---|---|---|---|
-| `TRIP_MAX_DISTANCE_KM` | No | `3000` | Longest route accepted. Mapbox allows up to 10,000 km (`facts.md` F-7) |
+| `TRIP_MAX_DISTANCE_KM` | No | `3000` | Longest route accepted |
 | `TRIP_MAX_CHECKPOINTS_PER_ROUTE` | No | `200` | Requests that would place more are rejected with a hint to widen the spacing |
+| `ROUTE_ALTERNATIVES_REQUESTED` | No | `4` | Alternatives asked for in the first routing request (TomTom allows 0 to 5, `facts.md` F-40). More than 2 leaves spares for the distinctness check |
 | `ROUTE_MAX_EXTRA_REQUESTS` | No | `4` | Extra routing requests allowed per trip to reach 3 routes (`trip-planning.md`) |
-| `WEATHER_MAX_CELLS_PER_TRIP` | No | `400` | Weather cells per trip, checkpoints and heatmap together. Each cell costs at least one Open-Meteo call; the free tier allows 10,000 a day (F-30, F-31) |
+| `WEATHER_MAX_CELLS_PER_TRIP` | No | `300` | Weather cells per trip, checkpoints and heatmap together. Each cell costs one Open-Meteo call; the free tier allows 600 a minute and 10,000 a day (F-31, F-48) |
 | `FORECAST_CACHE_TTL_SECONDS` | No | `1800` | How long a forecast cell stays cached. Not yet matched to how often the provider updates (UNVERIFIED) |
-| `RATE_LIMIT_TRIPS_PER_MINUTE` | No | `10` | Trip plans allowed per client address per minute |
+| `RATE_LIMIT_TRIPS_PER_MINUTE` | No | `10` | Trip plans allowed per client address per minute; the weather grid has the same limit, counted separately. Place search has a fixed 60 a minute |
 
 `0` means "no limit" only where a row says so; none of these accept `0`.
 
@@ -88,12 +99,18 @@ Retry count and backoff are fixed constants in code, not settings (`engineering-
 
 | Variable | Required | Default | Meaning |
 |---|---|---|---|
-| `VITE_API_BASE_URL` | No | `/api` | Where the browser calls the API. Same origin through Caddy |
+| `VITE_API_BASE_URL` | No | `/api` | Where the browser calls the API. Same origin through Caddy. Only its origin is used, because the generated API paths already start with `/api` (`frontend.md`, API client) |
 | `VITE_MAP_STYLE_URL` | No | `https://tiles.openfreemap.org/styles/liberty` | Map style. OpenFreeMap needs no key (`facts.md` F-22) |
 
 The frontend validates these at startup with a schema (`src/config/`).
 
+## Offline placeholder environment
+
+`backend/offline.env` holds fake, non-secret values. Tests, type checks, OpenAPI export and the
+`collectstatic` step in image builds load it, because Django needs a valid settings object to
+import but none of these talk to the database or a provider. It is never used to run the app.
+
 ## For local development
 
 The same Compose stack runs locally. In `.env`, set `PUBLIC_HOST=localhost`, `DJANGO_DEBUG=true`,
-a throwaway `DJANGO_SECRET_KEY` and database password, and your own `MAPBOX_ACCESS_TOKEN`.
+a throwaway `DJANGO_SECRET_KEY` and database password, and your own `TOMTOM_API_KEY`.
