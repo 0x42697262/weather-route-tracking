@@ -1,0 +1,31 @@
+"""Fixed internal constants of the planning services (`docs/trip-planning.md`)."""
+
+from datetime import timedelta
+from typing import Final
+
+from shared.units import Unit, convert
+
+ROUTES_TARGET: Final = 3
+TOP_UP_ALTERNATIVES: Final = 0
+MOTORWAY_ROUND_MAX_FASTEST_KM: Final = 500.0
+
+DEPARTURE_PAST_TOLERANCE: Final = timedelta(minutes=15)
+SECONDS_PER_MINUTE: Final = 60
+SAME_PLACE_MAX_DISTANCE_KM: Final = 1.0
+
+FEDERAL_GROSS_LIMIT_LB: Final = 80000.0
+FEDERAL_GROSS_LIMIT_KG: Final = convert(FEDERAL_GROSS_LIMIT_LB, Unit.POUNDS, Unit.KILOGRAMS)
+
+GRID_MAX_LINES: Final = ROUTES_TARGET
+GRID_MAX_POINTS_PER_LINE: Final = 20000
+GRID_MAX_ENCODED_CHARS: Final = 200000
+GRID_VALUE_DECIMALS: Final = 1
+
+PLACES_QUERY_MIN_CHARS: Final = 3
+PLACES_QUERY_MAX_CHARS: Final = 100
+PLACE_ID_MAX_CHARS: Final = 200
+PLACE_LABEL_MAX_CHARS: Final = 200
+
+OUTPUT_DISTANCE_DECIMALS: Final = 3
+OUTPUT_COORDINATE_DECIMALS: Final = 6
+OUTPUT_DURATION_DECIMALS: Final = 0

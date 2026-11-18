@@ -1,0 +1,2246 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Weather routes API",
+    "version": "1",
+    "description": ""
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "core_api_health",
+        "summary": "Health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "The process is up. Checks nothing else."
+      }
+    },
+    "/api/ready": {
+      "get": {
+        "operationId": "core_api_ready",
+        "summary": "Ready",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "The process can serve requests: the database is reachable and a rule set is active."
+      }
+    },
+    "/api/v1/options": {
+      "get": {
+        "operationId": "planning_api_views_options",
+        "summary": "Options",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptionsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "What the driver may choose and the defaults, from the active rule set, plus the\nattribution of the chosen providers.",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/v1/trips": {
+      "post": {
+        "operationId": "planning_api_views_trips",
+        "summary": "Trips",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Plan a trip: up to 3 routes with checkpoints, weather, risk and a recommendation.",
+        "tags": [
+          "planning"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/v1/weather-grid": {
+      "post": {
+        "operationId": "planning_api_views_weather_grid",
+        "summary": "Weather Grid",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeatherGridOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "The heatmap grid around the given route lines for the whole forecast window.",
+        "tags": [
+          "planning"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WeatherGridIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/v1/places": {
+      "get": {
+        "operationId": "planning_api_views_places",
+        "summary": "Places",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query",
+            "schema": {
+              "maxLength": 100,
+              "title": "Query",
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "session",
+            "schema": {
+              "format": "uuid",
+              "title": "Session",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceSuggestionsOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Place suggestions for a typed query; `session` (a UUID) groups one typing session.",
+        "tags": [
+          "planning"
+        ]
+      }
+    },
+    "/api/v1/places/{place_id}": {
+      "get": {
+        "operationId": "planning_api_views_place",
+        "summary": "Place",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "place_id",
+            "schema": {
+              "maxLength": 200,
+              "title": "Place Id",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "The coordinates of a picked suggestion.",
+        "tags": [
+          "planning"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthOut": {
+        "description": "The process is up.",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/HealthStatus"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "HealthStatus": {
+        "description": "The only answer a live process gives.",
+        "enum": [
+          "ok"
+        ],
+        "title": "HealthStatus",
+        "type": "string"
+      },
+      "CheckStatus": {
+        "description": "The outcome of one check.",
+        "enum": [
+          "ok",
+          "failed"
+        ],
+        "title": "CheckStatus",
+        "type": "string"
+      },
+      "ReadinessCheck": {
+        "description": "The checks readiness runs.",
+        "enum": [
+          "database",
+          "rule_set"
+        ],
+        "title": "ReadinessCheck",
+        "type": "string"
+      },
+      "ReadinessOut": {
+        "description": "Whether the process can serve requests, and the outcome of each check.",
+        "properties": {
+          "ready": {
+            "title": "Ready",
+            "type": "boolean"
+          },
+          "checks": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CheckStatus"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/ReadinessCheck"
+            },
+            "title": "Checks",
+            "type": "object"
+          }
+        },
+        "required": [
+          "ready",
+          "checks"
+        ],
+        "title": "ReadinessOut",
+        "type": "object"
+      },
+      "AttributionOut": {
+        "description": "A notice the map shows where a provider's data is displayed; `url` links it if set.",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "text",
+          "url"
+        ],
+        "title": "AttributionOut",
+        "type": "object"
+      },
+      "BooleanOptionOut": {
+        "description": "An on/off option. When `available` is false, only `default` is accepted.",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/TripOptionName"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/OptionTier"
+          },
+          "text_key": {
+            "title": "Text Key",
+            "type": "string"
+          },
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "default": {
+            "type": "boolean",
+            "title": "Default"
+          }
+        },
+        "required": [
+          "name",
+          "tier",
+          "text_key",
+          "available",
+          "default"
+        ],
+        "title": "BooleanOptionOut",
+        "type": "object"
+      },
+      "DepartureWindowOut": {
+        "description": "The departures a trip accepts, relative to now.",
+        "properties": {
+          "past_tolerance_minutes": {
+            "title": "Past Tolerance Minutes",
+            "type": "integer"
+          },
+          "max_hours_ahead": {
+            "title": "Max Hours Ahead",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "past_tolerance_minutes",
+          "max_hours_ahead"
+        ],
+        "title": "DepartureWindowOut",
+        "type": "object"
+      },
+      "HeatmapLayerOut": {
+        "description": "A heatmap layer; `variable` is null for the combined risk.",
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "variable": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeatherVariable"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text_key": {
+            "title": "Text Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "variable",
+          "text_key"
+        ],
+        "title": "HeatmapLayerOut",
+        "type": "object"
+      },
+      "HeatmapLayersOut": {
+        "description": "The heatmap layers and the one shown first.",
+        "properties": {
+          "default": {
+            "type": "string",
+            "title": "Default"
+          },
+          "layers": {
+            "items": {
+              "$ref": "#/components/schemas/HeatmapLayerOut"
+            },
+            "title": "Layers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "default",
+          "layers"
+        ],
+        "title": "HeatmapLayersOut",
+        "type": "object"
+      },
+      "NumberOptionOut": {
+        "description": "A number in `unit`, with inclusive bounds. `default` is null when `required`.",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/TripOptionName"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/OptionTier"
+          },
+          "text_key": {
+            "title": "Text Key",
+            "type": "string"
+          },
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          },
+          "default": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default"
+          },
+          "minimum": {
+            "title": "Minimum",
+            "type": "number"
+          },
+          "maximum": {
+            "title": "Maximum",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "tier",
+          "text_key",
+          "available",
+          "unit",
+          "required",
+          "default",
+          "minimum",
+          "maximum"
+        ],
+        "title": "NumberOptionOut",
+        "type": "object"
+      },
+      "OptionTier": {
+        "description": "Where the form shows an option: in the main form, or under \"Advanced options\".",
+        "enum": [
+          "basic",
+          "advanced"
+        ],
+        "title": "OptionTier",
+        "type": "string"
+      },
+      "OptionsOut": {
+        "description": "What the driver may choose, and the tables the frontend renders by iterating.",
+        "properties": {
+          "rule_set_version": {
+            "title": "Rule Set Version",
+            "type": "integer"
+          },
+          "forecast_window_hours": {
+            "title": "Forecast Window Hours",
+            "type": "integer"
+          },
+          "stretch_method": {
+            "$ref": "#/components/schemas/StretchMethod"
+          },
+          "routes_target": {
+            "title": "Routes Target",
+            "type": "integer"
+          },
+          "departure_window": {
+            "$ref": "#/components/schemas/DepartureWindowOut"
+          },
+          "attribution": {
+            "items": {
+              "$ref": "#/components/schemas/AttributionOut"
+            },
+            "title": "Attribution",
+            "type": "array"
+          },
+          "options": {
+            "$ref": "#/components/schemas/TripOptionsOut"
+          },
+          "risk_levels": {
+            "items": {
+              "$ref": "#/components/schemas/RiskLevelOut"
+            },
+            "title": "Risk Levels",
+            "type": "array"
+          },
+          "weather_variables": {
+            "items": {
+              "$ref": "#/components/schemas/WeatherVariableOut"
+            },
+            "title": "Weather Variables",
+            "type": "array"
+          },
+          "heatmap_layers": {
+            "$ref": "#/components/schemas/HeatmapLayersOut"
+          }
+        },
+        "required": [
+          "rule_set_version",
+          "forecast_window_hours",
+          "stretch_method",
+          "routes_target",
+          "departure_window",
+          "attribution",
+          "options",
+          "risk_levels",
+          "weather_variables",
+          "heatmap_layers"
+        ],
+        "title": "OptionsOut",
+        "type": "object"
+      },
+      "RiskLevel": {
+        "description": "The five fixed risk levels.",
+        "enum": [
+          "low",
+          "moderate",
+          "high",
+          "severe",
+          "no_travel"
+        ],
+        "title": "RiskLevel",
+        "type": "string"
+      },
+      "RiskLevelOut": {
+        "description": "One row of the risk level table.",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/RiskLevel"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "ranked": {
+            "title": "Ranked",
+            "type": "boolean"
+          },
+          "blocks_recommendation": {
+            "title": "Blocks Recommendation",
+            "type": "boolean"
+          },
+          "text_key": {
+            "title": "Text Key",
+            "type": "string"
+          },
+          "color_key": {
+            "title": "Color Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "score",
+          "ranked",
+          "blocks_recommendation",
+          "text_key",
+          "color_key"
+        ],
+        "title": "RiskLevelOut",
+        "type": "object"
+      },
+      "SpacingOptionOut": {
+        "description": "The checkpoint spacing choice.",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/TripOptionName"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/OptionTier"
+          },
+          "text_key": {
+            "title": "Text Key",
+            "type": "string"
+          },
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/SpacingOut"
+            },
+            "title": "Choices",
+            "type": "array"
+          },
+          "default": {
+            "$ref": "#/components/schemas/SpacingOut"
+          }
+        },
+        "required": [
+          "name",
+          "tier",
+          "text_key",
+          "available",
+          "unit",
+          "choices",
+          "default"
+        ],
+        "title": "SpacingOptionOut",
+        "type": "object"
+      },
+      "SpacingOut": {
+        "description": "A checkpoint spacing as staff entered it, and in km.",
+        "properties": {
+          "value": {
+            "title": "Value",
+            "type": "number"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "km": {
+            "title": "Km",
+            "type": "number"
+          }
+        },
+        "required": [
+          "value",
+          "unit",
+          "km"
+        ],
+        "title": "SpacingOut",
+        "type": "object"
+      },
+      "StretchMethod": {
+        "description": "How a stretch between two samples gets its level (`docs/risk-model.md`).",
+        "enum": [
+          "worse_end",
+          "refine"
+        ],
+        "title": "StretchMethod",
+        "type": "string"
+      },
+      "TripOptionName": {
+        "description": "Every trip parameter; also the request field that carries it.",
+        "enum": [
+          "checkpoint_spacing",
+          "include_rest_stops",
+          "load_weight"
+        ],
+        "title": "TripOptionName",
+        "type": "string"
+      },
+      "TripOptionsOut": {
+        "description": "Every trip parameter.",
+        "properties": {
+          "checkpoint_spacing": {
+            "$ref": "#/components/schemas/SpacingOptionOut"
+          },
+          "include_rest_stops": {
+            "$ref": "#/components/schemas/BooleanOptionOut"
+          },
+          "load_weight": {
+            "$ref": "#/components/schemas/NumberOptionOut"
+          }
+        },
+        "required": [
+          "checkpoint_spacing",
+          "include_rest_stops",
+          "load_weight"
+        ],
+        "title": "TripOptionsOut",
+        "type": "object"
+      },
+      "Unit": {
+        "description": "Every unit a value may be entered or returned in.",
+        "enum": [
+          "km/h",
+          "mph",
+          "m/s",
+          "kn",
+          "km",
+          "mi",
+          "m",
+          "mm/h",
+          "cm/h",
+          "in/h",
+          "kg",
+          "lb",
+          "t"
+        ],
+        "title": "Unit",
+        "type": "string"
+      },
+      "WeatherVariable": {
+        "description": "Conditions a rule set can rate.",
+        "enum": [
+          "wind_speed",
+          "rain_rate",
+          "snowfall_rate"
+        ],
+        "title": "WeatherVariable",
+        "type": "string"
+      },
+      "WeatherVariableOut": {
+        "description": "One row of the weather condition table.",
+        "properties": {
+          "key": {
+            "$ref": "#/components/schemas/WeatherVariable"
+          },
+          "metric_unit": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "text_key": {
+            "title": "Text Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "metric_unit",
+          "text_key"
+        ],
+        "title": "WeatherVariableOut",
+        "type": "object"
+      },
+      "ErrorBodyOut": {
+        "description": "A catalog error: its code, a message for the driver, and field details if any.",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ErrorCode"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ErrorDetailOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "details"
+        ],
+        "title": "ErrorBodyOut",
+        "type": "object"
+      },
+      "ErrorCode": {
+        "description": "Every error code the API can return.",
+        "enum": [
+          "invalid_request",
+          "no_road_route",
+          "place_not_found",
+          "upstream_unavailable",
+          "upstream_busy",
+          "upstream_invalid_response",
+          "no_active_rule_set",
+          "rate_limited"
+        ],
+        "title": "ErrorCode",
+        "type": "string"
+      },
+      "ErrorDetailOut": {
+        "description": "One field-level problem. `field` is a dotted path to the request field.",
+        "properties": {
+          "field": {
+            "title": "Field",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "message"
+        ],
+        "title": "ErrorDetailOut",
+        "type": "object"
+      },
+      "ErrorOut": {
+        "description": "The body of every error response.",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBodyOut"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorOut",
+        "type": "object"
+      },
+      "CheckpointOut": {
+        "description": "A checkpoint. `level` is null when Unknown or on a ferry; `weather_level` is the level\nfrom the forecast even on a ferry.",
+        "properties": {
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "distance_km": {
+            "title": "Distance Km",
+            "type": "number"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "arrival_utc": {
+            "format": "date-time",
+            "title": "Arrival Utc",
+            "type": "string"
+          },
+          "values": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/WeatherVariable"
+            },
+            "title": "Values",
+            "type": "object"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "weather_level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/ConditionOut"
+            },
+            "title": "Conditions",
+            "type": "array"
+          },
+          "on_ferry": {
+            "title": "On Ferry",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "index",
+          "distance_km",
+          "latitude",
+          "longitude",
+          "arrival_utc",
+          "values",
+          "level",
+          "weather_level",
+          "decided_by",
+          "conditions",
+          "on_ferry"
+        ],
+        "title": "CheckpointOut",
+        "type": "object"
+      },
+      "ConditionOut": {
+        "description": "One condition at a checkpoint: its value and level (band level raised by load rules).",
+        "properties": {
+          "variable": {
+            "$ref": "#/components/schemas/WeatherVariable"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "band_level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "variable",
+          "value",
+          "band_level",
+          "level"
+        ],
+        "title": "ConditionOut",
+        "type": "object"
+      },
+      "NoRecommendationReason": {
+        "description": "Why no route is recommended.",
+        "enum": [
+          "every_route_blocked",
+          "no_known_weather",
+          "too_much_unknown_weather"
+        ],
+        "title": "NoRecommendationReason",
+        "type": "string"
+      },
+      "NotRecommendableReason": {
+        "description": "Why one route cannot be recommended, in the order they are checked.",
+        "enum": [
+          "no_known_weather",
+          "blocked",
+          "too_much_unknown_weather"
+        ],
+        "title": "NotRecommendableReason",
+        "type": "string"
+      },
+      "OptionsUsedOut": {
+        "description": "The effective trip options, metric.",
+        "properties": {
+          "checkpoint_spacing_km": {
+            "title": "Checkpoint Spacing Km",
+            "type": "number"
+          },
+          "include_rest_stops": {
+            "title": "Include Rest Stops",
+            "type": "boolean"
+          },
+          "load_kg": {
+            "title": "Load Kg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "checkpoint_spacing_km",
+          "include_rest_stops",
+          "load_kg"
+        ],
+        "title": "OptionsUsedOut",
+        "type": "object"
+      },
+      "RankingKeyOut": {
+        "description": "A route's rounded ranking key, one value per entry of `key_names`.",
+        "properties": {
+          "route_id": {
+            "title": "Route Id",
+            "type": "string"
+          },
+          "values": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Values",
+            "type": "array"
+          },
+          "has_known_weather": {
+            "title": "Has Known Weather",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "route_id",
+          "values",
+          "has_known_weather"
+        ],
+        "title": "RankingKeyOut",
+        "type": "object"
+      },
+      "RankingOut": {
+        "description": "The ranking keys, smallest first.",
+        "properties": {
+          "key_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Key Names",
+            "type": "array"
+          },
+          "keys": {
+            "items": {
+              "$ref": "#/components/schemas/RankingKeyOut"
+            },
+            "title": "Keys",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key_names",
+          "keys"
+        ],
+        "title": "RankingOut",
+        "type": "object"
+      },
+      "RouteOut": {
+        "description": "One route, in ranking order; `rank` 1 is the best. `source` says how it was found and\nis also its label's text key.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "recommended": {
+            "title": "Recommended",
+            "type": "boolean"
+          },
+          "not_recommendable_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NotRecommendableReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/RouteSource"
+          },
+          "distance_km": {
+            "title": "Distance Km",
+            "type": "number"
+          },
+          "polyline": {
+            "title": "Polyline",
+            "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/RouteSummaryOut"
+          },
+          "checkpoints": {
+            "items": {
+              "$ref": "#/components/schemas/CheckpointOut"
+            },
+            "title": "Checkpoints",
+            "type": "array"
+          },
+          "stretches": {
+            "items": {
+              "$ref": "#/components/schemas/StretchOut"
+            },
+            "title": "Stretches",
+            "type": "array"
+          },
+          "stops": {
+            "items": {
+              "$ref": "#/components/schemas/StopOut"
+            },
+            "title": "Stops",
+            "type": "array"
+          },
+          "positions_by_hour": {
+            "items": {
+              "$ref": "#/components/schemas/TruckPositionOut"
+            },
+            "title": "Positions By Hour",
+            "type": "array"
+          },
+          "refined_samples": {
+            "title": "Refined Samples",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "rank",
+          "recommended",
+          "not_recommendable_reason",
+          "source",
+          "distance_km",
+          "polyline",
+          "summary",
+          "checkpoints",
+          "stretches",
+          "stops",
+          "positions_by_hour",
+          "refined_samples"
+        ],
+        "title": "RouteOut",
+        "type": "object"
+      },
+      "RouteSource": {
+        "description": "How a kept route was found; the route card shows its label.",
+        "enum": [
+          "fastest",
+          "alternative",
+          "avoid_tolls",
+          "avoid_highways",
+          "detour"
+        ],
+        "title": "RouteSource",
+        "type": "string"
+      },
+      "RouteSummaryOut": {
+        "description": "Distances, risk and time of one route.",
+        "properties": {
+          "distance_km_by_level": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/RiskLevel"
+            },
+            "title": "Distance Km By Level",
+            "type": "object"
+          },
+          "unknown_km": {
+            "title": "Unknown Km",
+            "type": "number"
+          },
+          "ferry_km": {
+            "title": "Ferry Km",
+            "type": "number"
+          },
+          "total_km": {
+            "title": "Total Km",
+            "type": "number"
+          },
+          "worst_level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "blocking_km": {
+            "title": "Blocking Km",
+            "type": "number"
+          },
+          "average_risk": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Risk"
+          },
+          "blocked": {
+            "title": "Blocked",
+            "type": "boolean"
+          },
+          "driving_s": {
+            "title": "Driving S",
+            "type": "number"
+          },
+          "rest_s": {
+            "title": "Rest S",
+            "type": "number"
+          },
+          "ferry_s": {
+            "title": "Ferry S",
+            "type": "number"
+          },
+          "travel_time_s": {
+            "title": "Travel Time S",
+            "type": "number"
+          },
+          "arrival_utc": {
+            "format": "date-time",
+            "title": "Arrival Utc",
+            "type": "string"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/RouteWarning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "distance_km_by_level",
+          "unknown_km",
+          "ferry_km",
+          "total_km",
+          "worst_level",
+          "blocking_km",
+          "average_risk",
+          "blocked",
+          "driving_s",
+          "rest_s",
+          "ferry_s",
+          "travel_time_s",
+          "arrival_utc",
+          "warnings"
+        ],
+        "title": "RouteSummaryOut",
+        "type": "object"
+      },
+      "RouteWarning": {
+        "description": "Warnings a route summary can carry.",
+        "enum": [
+          "unknown_weather",
+          "ferry_crossing",
+          "has_blocking_level"
+        ],
+        "title": "RouteWarning",
+        "type": "string"
+      },
+      "StopKind": {
+        "description": "A rest stop the clock inserts.",
+        "enum": [
+          "break",
+          "off_duty"
+        ],
+        "title": "StopKind",
+        "type": "string"
+      },
+      "StopOut": {
+        "description": "A rest stop the clock inserted.",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/StopKind"
+          },
+          "distance_km": {
+            "title": "Distance Km",
+            "type": "number"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "start_utc": {
+            "format": "date-time",
+            "title": "Start Utc",
+            "type": "string"
+          },
+          "duration_s": {
+            "title": "Duration S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "kind",
+          "distance_km",
+          "latitude",
+          "longitude",
+          "start_utc",
+          "duration_s"
+        ],
+        "title": "StopOut",
+        "type": "object"
+      },
+      "StretchKind": {
+        "description": "Where a stretch's level comes from. Its properties are in\n`planning.domain.summary.STRETCH_KINDS`.",
+        "enum": [
+          "rated",
+          "unknown",
+          "ferry"
+        ],
+        "title": "StretchKind",
+        "type": "string"
+      },
+      "StretchOut": {
+        "description": "A part of the route with one level; `polyline` is its line (Google encoded, precision 5).\n`level` is null for Unknown and for a ferry that is not rated.",
+        "properties": {
+          "start_km": {
+            "title": "Start Km",
+            "type": "number"
+          },
+          "end_km": {
+            "title": "End Km",
+            "type": "number"
+          },
+          "level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/StretchKind"
+          },
+          "polyline": {
+            "title": "Polyline",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_km",
+          "end_km",
+          "level",
+          "kind",
+          "polyline"
+        ],
+        "title": "StretchOut",
+        "type": "object"
+      },
+      "TripOut": {
+        "description": "A planned trip. Exactly one of `recommended_route_id` and `no_recommendation_reason` is\nset.",
+        "properties": {
+          "rule_set_version": {
+            "title": "Rule Set Version",
+            "type": "integer"
+          },
+          "stretch_method": {
+            "$ref": "#/components/schemas/StretchMethod"
+          },
+          "departure_utc": {
+            "format": "date-time",
+            "title": "Departure Utc",
+            "type": "string"
+          },
+          "vehicle_weight_kg": {
+            "title": "Vehicle Weight Kg",
+            "type": "number"
+          },
+          "options_used": {
+            "$ref": "#/components/schemas/OptionsUsedOut"
+          },
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/RouteOut"
+            },
+            "title": "Routes",
+            "type": "array"
+          },
+          "ranking": {
+            "$ref": "#/components/schemas/RankingOut"
+          },
+          "recommended_route_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended Route Id"
+          },
+          "no_recommendation_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NoRecommendationReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "routes_requested": {
+            "title": "Routes Requested",
+            "type": "integer"
+          },
+          "routes_found": {
+            "title": "Routes Found",
+            "type": "integer"
+          },
+          "fewer_routes_than_requested": {
+            "title": "Fewer Routes Than Requested",
+            "type": "boolean"
+          },
+          "rounds_tried": {
+            "items": {
+              "$ref": "#/components/schemas/RouteSource"
+            },
+            "title": "Rounds Tried",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/TripWarning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          },
+          "weather": {
+            "$ref": "#/components/schemas/WeatherReportOut"
+          }
+        },
+        "required": [
+          "rule_set_version",
+          "stretch_method",
+          "departure_utc",
+          "vehicle_weight_kg",
+          "options_used",
+          "routes",
+          "ranking",
+          "recommended_route_id",
+          "no_recommendation_reason",
+          "routes_requested",
+          "routes_found",
+          "fewer_routes_than_requested",
+          "rounds_tried",
+          "warnings",
+          "weather"
+        ],
+        "title": "TripOut",
+        "type": "object"
+      },
+      "TripWarning": {
+        "description": "Warnings about the whole trip, shown above the route cards.",
+        "enum": [
+          "gross_weight_over_limit",
+          "fewer_routes_than_target",
+          "weather_partial",
+          "weather_unavailable"
+        ],
+        "title": "TripWarning",
+        "type": "string"
+      },
+      "TruckPositionOut": {
+        "description": "Where the truck is `hour` whole hours after departure; it stays at the destination after\narrival.",
+        "properties": {
+          "hour": {
+            "title": "Hour",
+            "type": "integer"
+          },
+          "distance_km": {
+            "title": "Distance Km",
+            "type": "number"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "hour",
+          "distance_km",
+          "latitude",
+          "longitude"
+        ],
+        "title": "TruckPositionOut",
+        "type": "object"
+      },
+      "WeatherReportOut": {
+        "description": "How the weather lookup went.",
+        "properties": {
+          "cell_size_deg": {
+            "title": "Cell Size Deg",
+            "type": "number"
+          },
+          "cells_requested": {
+            "title": "Cells Requested",
+            "type": "integer"
+          },
+          "cells_missing": {
+            "title": "Cells Missing",
+            "type": "integer"
+          },
+          "unknown_checkpoints": {
+            "title": "Unknown Checkpoints",
+            "type": "integer"
+          },
+          "refined_samples": {
+            "title": "Refined Samples",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cell_size_deg",
+          "cells_requested",
+          "cells_missing",
+          "unknown_checkpoints",
+          "refined_samples"
+        ],
+        "title": "WeatherReportOut",
+        "type": "object"
+      },
+      "DistanceIn": {
+        "additionalProperties": false,
+        "description": "A distance: `km`, `mi` or `m`.",
+        "properties": {
+          "value": {
+            "title": "Value",
+            "type": "number"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "title": "DistanceIn",
+        "type": "object"
+      },
+      "MassIn": {
+        "additionalProperties": false,
+        "description": "A weight: `kg`, `lb` or `t`.",
+        "properties": {
+          "value": {
+            "title": "Value",
+            "type": "number"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "title": "MassIn",
+        "type": "object"
+      },
+      "TripEndIn": {
+        "additionalProperties": false,
+        "description": "A place the driver picked: its label and position.",
+        "properties": {
+          "label": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "latitude": {
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "latitude",
+          "longitude"
+        ],
+        "title": "TripEndIn",
+        "type": "object"
+      },
+      "TripIn": {
+        "additionalProperties": false,
+        "description": "A trip to plan. Omitted options take their defaults from `GET /api/v1/options`.",
+        "properties": {
+          "origin": {
+            "$ref": "#/components/schemas/TripEndIn"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/TripEndIn"
+          },
+          "departure_utc": {
+            "format": "date-time",
+            "title": "Departure Utc",
+            "type": "string"
+          },
+          "load_weight": {
+            "$ref": "#/components/schemas/MassIn"
+          },
+          "checkpoint_spacing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DistanceIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "include_rest_stops": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Include Rest Stops"
+          }
+        },
+        "required": [
+          "origin",
+          "destination",
+          "departure_utc",
+          "load_weight"
+        ],
+        "title": "TripIn",
+        "type": "object"
+      },
+      "GridLayerOut": {
+        "description": "One heatmap layer. `levels[cell][hour]` indexes the response's `levels` (null: no\nforecast). `values[cell][hour]` is the metric value; null for the combined layer.",
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "variable": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeatherVariable"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text_key": {
+            "title": "Text Key",
+            "type": "string"
+          },
+          "levels": {
+            "items": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            "title": "Levels",
+            "type": "array"
+          },
+          "values": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Values"
+          }
+        },
+        "required": [
+          "key",
+          "variable",
+          "text_key",
+          "levels",
+          "values"
+        ],
+        "title": "GridLayerOut",
+        "type": "object"
+      },
+      "WeatherGridOut": {
+        "description": "Every corridor cell for every hour from departure to departure plus the window.",
+        "properties": {
+          "rule_set_version": {
+            "title": "Rule Set Version",
+            "type": "integer"
+          },
+          "departure_utc": {
+            "format": "date-time",
+            "title": "Departure Utc",
+            "type": "string"
+          },
+          "hours_utc": {
+            "items": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "title": "Hours Utc",
+            "type": "array"
+          },
+          "cell_size_deg": {
+            "title": "Cell Size Deg",
+            "type": "number"
+          },
+          "levels": {
+            "items": {
+              "$ref": "#/components/schemas/RiskLevel"
+            },
+            "title": "Levels",
+            "type": "array"
+          },
+          "latitudes": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Latitudes",
+            "type": "array"
+          },
+          "longitudes": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Longitudes",
+            "type": "array"
+          },
+          "layers": {
+            "items": {
+              "$ref": "#/components/schemas/GridLayerOut"
+            },
+            "title": "Layers",
+            "type": "array"
+          },
+          "cells_missing": {
+            "title": "Cells Missing",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rule_set_version",
+          "departure_utc",
+          "hours_utc",
+          "cell_size_deg",
+          "levels",
+          "latitudes",
+          "longitudes",
+          "layers",
+          "cells_missing"
+        ],
+        "title": "WeatherGridOut",
+        "type": "object"
+      },
+      "WeatherGridIn": {
+        "additionalProperties": false,
+        "description": "The route lines the client holds (the `polyline` of each route), the departure and the\nload.",
+        "properties": {
+          "lines": {
+            "items": {
+              "maxLength": 200000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Lines",
+            "type": "array"
+          },
+          "departure_utc": {
+            "format": "date-time",
+            "title": "Departure Utc",
+            "type": "string"
+          },
+          "load_weight": {
+            "$ref": "#/components/schemas/MassIn"
+          }
+        },
+        "required": [
+          "lines",
+          "departure_utc",
+          "load_weight"
+        ],
+        "title": "WeatherGridIn",
+        "type": "object"
+      },
+      "PlaceSuggestionOut": {
+        "description": "One suggestion; picking it costs one details call.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "subtitle": {
+            "title": "Subtitle",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "subtitle"
+        ],
+        "title": "PlaceSuggestionOut",
+        "type": "object"
+      },
+      "PlaceSuggestionsOut": {
+        "description": "Suggestions in the geocoder's order.",
+        "properties": {
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/PlaceSuggestionOut"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "suggestions"
+        ],
+        "title": "PlaceSuggestionsOut",
+        "type": "object"
+      },
+      "PlaceOut": {
+        "description": "A picked place: the label to show and send back with the trip, and its position.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "latitude",
+          "longitude"
+        ],
+        "title": "PlaceOut",
+        "type": "object"
+      }
+    }
+  },
+  "servers": []
+}
