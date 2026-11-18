@@ -283,8 +283,11 @@ and grid cells) is memoized on the server data it came from.
   readable.
 - Routes arrive before the heatmap; the heatmap control shows loading on its own.
 - Fewer than 3 routes: a notice on the cards ("Only 2 routes found for this trip").
-- No recommendation: the peek line says so and why ("No safe route: every route has No Travel
-  stretches").
+- No recommendation: the peek line gives the reason and still names the top-ranked route ("No
+  safe route · best available is Route A · No Travel risk · 3 h 36 m"); that card carries a red
+  "Best available" badge instead of "Recommended", and each card says why it is not recommended.
+  If the server sends no best available route, the line shows the reason alone.
+- Routes from the fallback are labeled "Similar route" or "Slower route" on their cards.
 - Unknown weather: a warning on the affected route card with the unknown distance.
 - Heatmap unavailable: the control is disabled with a one-line hint; routes are unaffected.
 - Built: the heatmap control has four states (`heatmapStatus.ts`: idle, loading, failed, ready),

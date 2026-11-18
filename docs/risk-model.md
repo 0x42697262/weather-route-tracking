@@ -154,6 +154,10 @@ key, from the highest score down. Travel time is the full elapsed time, rest inc
 
 **Recommendation:** the first route in that order, unless every route has distance at a level that
 blocks a recommendation (No Travel); then there is no recommendation and the response says why.
+The top-ranked route is then returned as `best_available_route_id` (and `best_available: true` on
+the route), and the verdict reads "No safe route · best available is Route A · …". Why: the driver
+still has to choose; naming the least bad route with its warning is clearer than naming none,
+while `recommended_route_id` stays empty so no client mistakes it for a safe recommendation.
 The reason is `every_route_blocked` when every route that has known weather is blocked, and
 `no_known_weather` when no route has any.
 

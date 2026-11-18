@@ -1403,6 +1403,10 @@
             "title": "Recommended",
             "type": "boolean"
           },
+          "best_available": {
+            "title": "Best Available",
+            "type": "boolean"
+          },
           "not_recommendable_reason": {
             "anyOf": [
               {
@@ -1464,6 +1468,7 @@
           "id",
           "rank",
           "recommended",
+          "best_available",
           "not_recommendable_reason",
           "source",
           "distance_km",
@@ -1702,7 +1707,7 @@
         "type": "object"
       },
       "TripOut": {
-        "description": "A planned trip. Exactly one of `recommended_route_id` and `no_recommendation_reason` is\nset.",
+        "description": "A planned trip. Exactly one of `recommended_route_id` and `no_recommendation_reason` is\nset. Without a recommendation, `best_available_route_id` names the top-ranked route.",
         "properties": {
           "rule_set_version": {
             "title": "Rule Set Version",
@@ -1754,6 +1759,17 @@
               }
             ]
           },
+          "best_available_route_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Available Route Id"
+          },
           "routes_requested": {
             "title": "Routes Requested",
             "type": "integer"
@@ -1794,6 +1810,7 @@
           "ranking",
           "recommended_route_id",
           "no_recommendation_reason",
+          "best_available_route_id",
           "routes_requested",
           "routes_found",
           "fewer_routes_than_requested",

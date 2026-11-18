@@ -14,7 +14,8 @@ affects the ranking, how checkpoint levels become distances, and how the average
   "over". Wind bands are continuous.
 - **No Travel in the ranking:** No Travel distance is the first ranking key, before Severe. Such a
   route stays visible with a warning. If every route has No Travel distance, there is no
-  recommendation.
+  recommendation; the top-ranked route is marked "Best available" with the reason (owner
+  decision, 2026-11-18).
 - **Stretches:** a stretch between two neighboring checkpoints takes the worse level of its ends.
   Where the two ends differ, extra samples between them locate the change (`risk-model.md`,
   method `refine`), once that step is built.

@@ -518,6 +518,8 @@ export interface components {
             rank: number;
             /** Recommended */
             recommended: boolean;
+            /** Best Available */
+            best_available: boolean;
             not_recommendable_reason: components["schemas"]["NotRecommendableReason"] | null;
             source: components["schemas"]["RouteSource"];
             /** Distance Km */
@@ -637,7 +639,7 @@ export interface components {
         /**
          * TripOut
          * @description A planned trip. Exactly one of `recommended_route_id` and `no_recommendation_reason` is
-         *     set.
+         *     set. Without a recommendation, `best_available_route_id` names the top-ranked route.
          */
         TripOut: {
             /** Rule Set Version */
@@ -657,6 +659,8 @@ export interface components {
             /** Recommended Route Id */
             recommended_route_id: string | null;
             no_recommendation_reason: components["schemas"]["NoRecommendationReason"] | null;
+            /** Best Available Route Id */
+            best_available_route_id: string | null;
             /** Routes Requested */
             routes_requested: number;
             /** Routes Found */

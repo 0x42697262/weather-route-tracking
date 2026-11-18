@@ -37,18 +37,22 @@ export function verdictFor(input: VerdictInput): Verdict {
     return { text: verdictText.finding, ...PLAIN };
   }
   const recommended = trip.routes.find((route) => route.id === trip.recommended_route_id);
-  if (recommended === undefined) {
-    const reason = trip.no_recommendation_reason;
+  const bestAvailable = trip.routes.find((route) => route.id === trip.best_available_route_id);
+  const reason = trip.no_recommendation_reason;
+  const shown = recommended ?? bestAvailable;
+  if (shown === undefined || (recommended === undefined && reason === null)) {
     return { text: reason === null ? verdictText.planTrip : verdictText.noRecommendation[reason], ...PLAIN };
   }
-  const level = input.levels === null ? null : worstLevel(input.levels, recommended.summary);
+  const level = input.levels === null ? null : worstLevel(input.levels, shown.summary);
+  const lead =
+    recommended === undefined && reason !== null
+      ? [verdictText.bestAvailablePrefix[reason], verdictText.bestAvailable(routeName(input.names, shown.id))]
+      : [verdictText.take(routeName(input.names, shown.id))];
   const parts = [
-    verdictText.take(routeName(input.names, recommended.id)),
+    ...lead,
     ...(level === null ? [] : [levelText.riskSuffix(level.label)]),
-    formatDurationS(recommended.summary.travel_time_s),
-    ...(recommended.summary.unknown_km > 0
-      ? [verdictText.unknownPart(input.formatDistanceKm(recommended.summary.unknown_km))]
-      : []),
+    formatDurationS(shown.summary.travel_time_s),
+    ...(shown.summary.unknown_km > 0 ? [verdictText.unknownPart(input.formatDistanceKm(shown.summary.unknown_km))] : []),
   ];
-  return { text: parts.join(verdictText.separator), level, recommended: true };
+  return { text: parts.join(verdictText.separator), level, recommended: recommended !== undefined };
 }

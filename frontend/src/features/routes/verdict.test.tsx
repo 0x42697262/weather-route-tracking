@@ -39,6 +39,24 @@ describe("verdict line", () => {
     );
   });
 
+  it("names the best available route when none can be recommended", () => {
+    const best = route({
+      recommended: false,
+      best_available: true,
+      not_recommendable_reason: "blocked",
+      summary: summary({ worst_level: "no_travel", blocking_km: 20 }),
+    });
+    const plan = trip({
+      routes: [best],
+      recommended_route_id: null,
+      no_recommendation_reason: "every_route_blocked",
+      best_available_route_id: "route-1",
+    });
+    const verdict = verdictFor(input({ trip: plan, names: routeNames(plan.routes) }));
+    expect(verdict.text).toBe("No safe route · best available is Route A · No Travel risk · 5 h 20 m");
+    expect(verdict.recommended).toBe(false);
+  });
+
   it("gives the reason when no route is recommended", () => {
     const blocked = route({
       recommended: false,

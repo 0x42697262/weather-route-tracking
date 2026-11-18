@@ -51,6 +51,7 @@ export function RouteCard({ route, name, selected, levels, units, onSelect, onSh
             <span className="truncate text-xs text-muted-foreground">{routeText.sources[route.source]}</span>
           </span>
           {route.recommended ? <Badge>{routeText.recommended}</Badge> : null}
+          {route.best_available ? <Badge variant="destructive">{routeText.bestAvailable}</Badge> : null}
         </span>
         <span className="flex items-baseline gap-3 text-sm">
           <span className="text-lg font-semibold tabular-nums">{formatDurationS(summary.travel_time_s)}</span>

@@ -15,6 +15,6 @@ export function usePlanArrival(): void {
     if (trip === undefined) {
       return;
     }
-    showPlan(trip.recommended_route_id ?? trip.routes[0]?.id ?? null);
+    showPlan(trip.recommended_route_id ?? trip.best_available_route_id ?? trip.routes[0]?.id ?? null);
   }, [arrivedAt, showPlan]);
 }

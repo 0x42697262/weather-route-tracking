@@ -107,14 +107,16 @@ Compare routes on these, in order; a later one only breaks ties in the earlier o
 5. Shortest **travel time**
 
 A route with any No Travel distance stays visible with a clear warning. If every route has No
-Travel distance, the app recommends none and says so.
+Travel distance, no route is recommended: the app says so, and still marks the top-ranked route
+"Best available" so the driver sees which one is least bad.
 
 A stretch with no forecast is Unknown. Its distance is shown with a warning, stays out of the
 ranking, and is left out of the average.
 
 A route with too much Unknown distance is not recommended: by default a route of which more than
 25% has no forecast cannot be the recommendation, and the next route in the ranking is recommended
-instead. Its card says why. If no route qualifies, the app recommends none and says so. Staff set
+instead. Its card says why. If no route qualifies, the app says so and marks the top-ranked route
+"Best available". Staff set
 the share in the rule set (`max_unknown_share`); setting it to empty removes the limit, so Unknown
 distance then never stops a recommendation.
 

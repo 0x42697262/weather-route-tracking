@@ -77,14 +77,17 @@ class Ranking:
     """Routes in ranked order and the recommendation.
 
     With at least one route, exactly one of `recommended_id` and `no_recommendation_reason` is
-    set. With no routes, both are None. `not_recommendable` names, per route that cannot be
-    recommended, the first reason that applies.
+    set. With no routes, both are None. `best_available_id` is the first route in `order` exactly
+    when there is no recommendation (and at least one route), so a driver always sees which route
+    ranks best, alongside the reason none is recommended. `not_recommendable` names, per route
+    that cannot be recommended, the first reason that applies.
     """
 
     order: tuple[str, ...]
     keys: tuple[RouteKey, ...]
     recommended_id: str | None
     no_recommendation_reason: NoRecommendationReason | None
+    best_available_id: str | None
     not_recommendable: Mapping[str, NotRecommendableReason]
 
 
@@ -207,6 +210,7 @@ def rank(routes: Sequence[RankingInput], max_unknown_share: float | None = None)
         order=order,
         keys=keys,
         recommended_id=recommended,
+        best_available_id=order[0] if recommended is None and order else None,
         no_recommendation_reason=(
             _reason([exclusions[route.route_id] for route in by_id.values()])
             if recommended is None

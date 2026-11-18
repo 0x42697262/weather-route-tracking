@@ -57,6 +57,24 @@ describe("RouteList", () => {
     expect(within(levels).queryByText("High")).not.toBeInTheDocument();
   });
 
+  it("marks the best available route and labels fallback routes", () => {
+    const plan = trip({
+      routes: [
+        route({ recommended: false, best_available: true, not_recommendable_reason: "blocked" }),
+        route({ id: "route-2", rank: 2, recommended: false, source: "similar", not_recommendable_reason: "blocked" }),
+      ],
+      recommended_route_id: null,
+      no_recommendation_reason: "every_route_blocked",
+      best_available_route_id: "route-1",
+    });
+    renderList(plan);
+    const cards = screen.getAllByTestId("route-card");
+    expect(within(cards[0] as HTMLElement).getByText("Best available")).toBeInTheDocument();
+    expect(within(cards[0] as HTMLElement).queryByText("Recommended")).not.toBeInTheDocument();
+    expect(within(cards[1] as HTMLElement).getByText("Similar route")).toBeInTheDocument();
+    expect(within(cards[1] as HTMLElement).queryByText("Best available")).not.toBeInTheDocument();
+  });
+
   it("says why a route is not recommended", () => {
     const plan = trip({
       routes: [

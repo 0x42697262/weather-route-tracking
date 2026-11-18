@@ -603,6 +603,7 @@ async def plan_trip(  # noqa: PLR0913
         extra={
             "route_count": plan.routes_found,
             "recommended_route": recommended,
+            "best_available_route": plan.ranking.best_available_id,
             "duration_ms": round((time.perf_counter() - started_s) * MILLISECONDS_PER_SECOND),
         },
     )

@@ -235,3 +235,25 @@ def test_blocked_and_too_unknown_routes_report_the_unknown_reason() -> None:
         "blocked": NotRecommendableReason.BLOCKED,
         "unknown": NotRecommendableReason.TOO_MUCH_UNKNOWN_WEATHER,
     }
+
+
+def test_without_a_recommendation_the_top_ranked_route_is_best_available() -> None:
+    worse = _route("worse", {NO_TRAVEL: 20, LOW: 80})
+    better = _route("better", {NO_TRAVEL: 5, LOW: 95})
+
+    ranking = rank([worse, better])
+
+    assert ranking.recommended_id is None
+    assert ranking.no_recommendation_reason is NoRecommendationReason.EVERY_ROUTE_BLOCKED
+    assert ranking.best_available_id == "better"
+
+
+def test_with_a_recommendation_there_is_no_best_available() -> None:
+    ranking = rank([_route("a", {LOW: 100})])
+
+    assert ranking.recommended_id == "a"
+    assert ranking.best_available_id is None
+
+
+def test_no_routes_have_no_best_available() -> None:
+    assert rank([]).best_available_id is None

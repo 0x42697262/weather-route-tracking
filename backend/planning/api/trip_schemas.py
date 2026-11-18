@@ -170,6 +170,7 @@ class RouteOut(Schema):
     id: str
     rank: int
     recommended: bool
+    best_available: bool
     not_recommendable_reason: NotRecommendableReason | None
     source: RouteSource
     distance_km: float
@@ -217,7 +218,7 @@ class WeatherReportOut(Schema):
 
 class TripOut(Schema):
     """A planned trip. Exactly one of `recommended_route_id` and `no_recommendation_reason` is
-    set."""
+    set. Without a recommendation, `best_available_route_id` names the top-ranked route."""
 
     rule_set_version: int
     stretch_method: StretchMethod
@@ -228,6 +229,7 @@ class TripOut(Schema):
     ranking: RankingOut
     recommended_route_id: str | None
     no_recommendation_reason: NoRecommendationReason | None
+    best_available_route_id: str | None
     routes_requested: int
     routes_found: int
     fewer_routes_than_requested: bool
@@ -300,6 +302,7 @@ def _route_out(route: PlannedRoute, rank: int, ranking: Ranking) -> RouteOut:
         id=route.route_id,
         rank=rank,
         recommended=route.route_id == ranking.recommended_id,
+        best_available=route.route_id == ranking.best_available_id,
         not_recommendable_reason=ranking.not_recommendable.get(route.route_id),
         source=route.source,
         distance_km=_km(route.distance_km),
@@ -370,6 +373,7 @@ def trip_out(plan: TripPlan) -> TripOut:
         ),
         recommended_route_id=ranking.recommended_id,
         no_recommendation_reason=ranking.no_recommendation_reason,
+        best_available_route_id=ranking.best_available_id,
         routes_requested=plan.routes_requested,
         routes_found=plan.routes_found,
         fewer_routes_than_requested=plan.routes_found < plan.routes_requested,
