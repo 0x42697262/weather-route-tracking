@@ -129,7 +129,16 @@ The service (`planning/services/route_options.py`) asks in rounds and stops as s
   the search goes on. Every skipped round is logged (`routes.round_skipped`: `unsupported`,
   `fastest_too_long`, `no_via_point`, `request_cap`).
 - Each kept route records how it was found. The fastest route is always first.
-- If the rounds are exhausted with fewer than 3, the response says how many were found.
+- **Fallback when the rounds run out.** Routes rejected only for not being distinct (overlap or
+  time) are set aside. If the rounds leave fewer than 3, the set-aside routes fill the remaining
+  places, most different first (lowest overlap with the kept routes, measured again), then
+  fastest. A set-aside route is never used when it nearly repeats a kept route (overlap 97% or
+  more) or takes more than 3 times as long as the fastest (`FALLBACK_MAX_OVERLAP_SHARE`,
+  `FALLBACK_MAX_TIME_RATIO`). It is labeled by why it was set aside: `similar` (overlap) or
+  `slower` (time), and logged as `routes.fallback_kept`. Ranking then treats it like any route.
+  Why: the product promises 3 options; a labeled similar or slower route is more useful to a
+  driver than a missing one, and the ranking still puts a much slower route last.
+- If even the fallback leaves fewer than 3, the response says how many were found.
 
 ### Ferries
 

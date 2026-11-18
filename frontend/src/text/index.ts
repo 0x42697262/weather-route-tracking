@@ -136,6 +136,8 @@ export const routeText = {
     avoid_tolls: "Avoids tolls",
     avoid_highways: "Avoids highways",
     detour: "Detour",
+    similar: "Similar route",
+    slower: "Slower route",
   },
   travelTime: "Travel time",
   distance: "Distance",

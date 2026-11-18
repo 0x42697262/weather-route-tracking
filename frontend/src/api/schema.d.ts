@@ -541,7 +541,7 @@ export interface components {
          * @description How a kept route was found; the route card shows its label.
          * @enum {string}
          */
-        RouteSource: "fastest" | "alternative" | "avoid_tolls" | "avoid_highways" | "detour";
+        RouteSource: "fastest" | "alternative" | "avoid_tolls" | "avoid_highways" | "detour" | "similar" | "slower";
         /**
          * RouteSummaryOut
          * @description Distances, risk and time of one route.

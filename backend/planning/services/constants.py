@@ -8,6 +8,8 @@ from shared.units import Unit, convert
 ROUTES_TARGET: Final = 3
 TOP_UP_ALTERNATIVES: Final = 0
 MOTORWAY_ROUND_MAX_FASTEST_KM: Final = 500.0
+FALLBACK_MAX_OVERLAP_SHARE: Final = 0.97
+FALLBACK_MAX_TIME_RATIO: Final = 3.0
 
 DEPARTURE_PAST_TOLERANCE: Final = timedelta(minutes=15)
 SECONDS_PER_MINUTE: Final = 60

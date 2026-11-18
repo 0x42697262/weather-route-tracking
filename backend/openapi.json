@@ -1485,7 +1485,9 @@
           "alternative",
           "avoid_tolls",
           "avoid_highways",
-          "detour"
+          "detour",
+          "similar",
+          "slower"
         ],
         "title": "RouteSource",
         "type": "string"

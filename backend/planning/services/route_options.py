@@ -7,8 +7,9 @@ the first request's errors reach the caller.
 
 import dataclasses
 import logging
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from types import MappingProxyType
 
 from planning import text
 from planning.domain.checkpoints import checkpoint_count
@@ -16,12 +17,25 @@ from planning.domain.detour import detour_vias
 from planning.domain.geometry import DegenerateLine, RouteLine, measure_line
 from planning.domain.options import TripOptionName
 from planning.domain.providers import RouteProvider
-from planning.domain.route_distinct import KeptRoutes, is_distinct
+from planning.domain.route_distinct import (
+    KeptRoutes,
+    RejectReason,
+    is_distinct,
+    overlap_share,
+    time_ratio,
+)
 from planning.domain.values import Avoidance, Coordinate, ProviderRoute, RouteRequest, RouteSource
 from planning.errors import InvalidRequest, NoRoadRoute, PlanningError, Rejection
-from planning.events import ROUTES_FETCHED, ROUTES_REJECTED, ROUTES_ROUND_SKIPPED
+from planning.events import (
+    ROUTES_FALLBACK_KEPT,
+    ROUTES_FETCHED,
+    ROUTES_REJECTED,
+    ROUTES_ROUND_SKIPPED,
+)
 from planning.keys import FIELD_DESTINATION
 from planning.services.constants import (
+    FALLBACK_MAX_OVERLAP_SHARE,
+    FALLBACK_MAX_TIME_RATIO,
     MOTORWAY_ROUND_MAX_FASTEST_KM,
     ROUTES_TARGET,
     TOP_UP_ALTERNATIVES,
@@ -72,6 +86,23 @@ TOP_UP_ROUNDS: tuple[TopUpRound, ...] = (
         skip_from_fastest_km=None,
     ),
 )
+
+
+FALLBACK_SOURCE_BY_REASON: Mapping[RejectReason, RouteSource] = MappingProxyType(
+    {
+        RejectReason.OVERLAPS_KEPT_ROUTE: RouteSource.SIMILAR,
+        RejectReason.TOO_SLOW: RouteSource.SLOWER,
+    },
+)
+
+
+@dataclass(frozen=True, slots=True)
+class _Candidate:
+    """A route rejected only for not being distinct; kept aside for the fallback."""
+
+    route: ProviderRoute
+    line: RouteLine
+    reason: RejectReason
 
 
 @dataclass(frozen=True, slots=True)
@@ -131,6 +162,7 @@ class _Search:
         self.kept: list[KeptRoute] = []
         self.rounds_tried: list[RouteSource] = []
         self.extra_requests = 0
+        self.set_aside: list[_Candidate] = []
 
     @property
     def full(self) -> bool:
@@ -151,6 +183,7 @@ class _Search:
         fastest_s = self.kept[0].route.travel_time_s
         decision = is_distinct(line.points, route.travel_time_s, self.index, fastest_s)
         if decision.reason is not None:
+            self.set_aside.append(_Candidate(route, line, decision.reason))
             self.reject(
                 source,
                 decision.reason.value,
@@ -159,6 +192,43 @@ class _Search:
             )
             return
         self.keep(route, line, source)
+
+    def fill_from_set_aside(self) -> None:
+        """Top up from the routes set aside, most different and fastest first.
+
+        A candidate is skipped when it nearly repeats a kept route (overlap at or above
+        `FALLBACK_MAX_OVERLAP_SHARE`) or is more than `FALLBACK_MAX_TIME_RATIO` times as slow as the
+        fastest route. Measures are taken again against the routes kept so far.
+        """
+        fastest_s = self.kept[0].route.travel_time_s
+        while not self.full and self.set_aside:
+            measured = [
+                (
+                    overlap_share(candidate.line.points, self.index),
+                    time_ratio(candidate.route.travel_time_s, fastest_s),
+                    candidate,
+                )
+                for candidate in self.set_aside
+            ]
+            usable = [
+                entry
+                for entry in measured
+                if entry[0] < FALLBACK_MAX_OVERLAP_SHARE and entry[1] <= FALLBACK_MAX_TIME_RATIO
+            ]
+            if not usable:
+                return
+            share, ratio, chosen = min(usable, key=lambda entry: (entry[0], entry[1]))
+            self.set_aside.remove(chosen)
+            source = FALLBACK_SOURCE_BY_REASON[chosen.reason]
+            logger.info(
+                ROUTES_FALLBACK_KEPT,
+                extra={
+                    "round": source.value,
+                    "overlap_share": round(share, LOG_SHARE_DECIMALS),
+                    "time_ratio": round(ratio, LOG_SHARE_DECIMALS),
+                },
+            )
+            self.keep(chosen.route, chosen.line, source)
 
     def reject(self, source: RouteSource, reason: str, **measures: object) -> None:
         logger.info(ROUTES_REJECTED, extra={"round": source.value, "reason": reason, **measures})
@@ -245,8 +315,10 @@ async def find_routes(  # noqa: PLR0913
     The first request asks for `alternatives_requested` alternatives (at most the provider's
     maximum); its first route is the fastest, the others are alternatives. While fewer than the
     target are kept, each supported round in `rounds` runs, until `max_extra_requests` extra
-    requests were sent. `base` gives the trip; its alternatives, avoidances and via points are
-    replaced per request.
+    requests were sent. If the rounds still leave fewer than the target, routes rejected only
+    for not being distinct are kept after all, labeled `similar` or `slower`
+    (`_Search.fill_from_set_aside`). `base` gives the trip; its alternatives, avoidances and via
+    points are replaced per request.
 
     Raises:
         InvalidRequest: the fastest route is longer than allowed, or needs too many checkpoints.
@@ -276,6 +348,7 @@ async def find_routes(  # noqa: PLR0913
         if search.full:
             break
         await _run_round(top_up, search, base, max_extra_requests)
+    search.fill_from_set_aside()
     return RouteSearch(
         routes=tuple(search.kept),
         rounds_tried=tuple(search.rounds_tried),

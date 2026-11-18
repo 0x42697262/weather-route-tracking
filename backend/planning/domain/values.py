@@ -23,6 +23,8 @@ class RouteSource(StrEnum):
     AVOID_TOLLS = "avoid_tolls"
     AVOID_HIGHWAYS = "avoid_highways"
     DETOUR = "detour"
+    SIMILAR = "similar"
+    SLOWER = "slower"
 
 
 class Avoidance(StrEnum):

@@ -15,7 +15,10 @@ returned 1 and 2 on two test trips (F-1).
 The target is 3 distinct routes. After the provider's own alternatives, the app asks again in
 rounds until it holds 3: avoiding tolls, avoiding highways, then through a detour point beside the
 fastest route. A route is kept only if it is distinct from those already kept and not much slower
-than the fastest. If the rounds run out, the app shows fewer and says so.
+than the fastest. If the rounds run out, the routes set aside as too similar or too slow fill the
+remaining places, labeled "Similar route" or "Slower route" (never a near-repeat, never more than 3
+times as slow). Only if none is usable does the app show fewer and say so (owner decision,
+2026-11-18).
 
 ## Consequences
 

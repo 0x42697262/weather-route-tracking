@@ -24,8 +24,9 @@ No account is needed. Nothing is stored per driver.
 1. **Finds 3 alternative routes** between origin and destination. Routes, place search and
    forecasts come from external providers (`adr/0002`). When the provider's first
    answer has fewer than 3, the app asks again in other ways (avoiding tolls, avoiding highways,
-   through a detour point) until it has 3 distinct routes. Only if no third distinct route exists
-   does it show fewer, and it says so.
+   through a detour point) until it has 3 distinct routes. If the rounds still leave fewer than 3,
+   it keeps the best of the routes it set aside as too similar or too slow, labeled "Similar
+   route" or "Slower route". Only when no usable route is left does it show fewer, and it says so.
 2. **Places checkpoints along each route** at the chosen spacing: 10, 25 or 50 miles.
 3. **Looks up the forecast at each checkpoint for the time the truck gets there**: departure time
    plus the drive time to that point. Not the current weather.

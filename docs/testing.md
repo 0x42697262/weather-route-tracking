@@ -125,7 +125,7 @@ changes.
 | Chicago IL to Denver CO | 5 routes, 3 kept; crosses a time zone | Long trip, rest stops, a zone change in arrival times |
 | Los Angeles CA to Las Vegas NV | 5 routes, 3 kept; one request took 10.3 s | Slow provider responses |
 | Denver CO to Salt Lake City UT | 3 routes, 3 kept | Mountain passes, snow in winter |
-| Seattle WA to Portland OR | 5 routes, 2 kept | A top-up round is needed |
+| Seattle WA to Portland OR | 5 routes, 2 distinct; 3rd from the fallback (`slower`, 695 km, 2.3 times the fastest) | Top-up rounds, then the fallback |
 
 ### Sparse data
 

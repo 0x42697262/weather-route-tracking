@@ -1,6 +1,15 @@
 import pytest
 
-from planning.domain.values import Avoidance, Coordinate, RouteRequest, RouteSource, Vehicle
+from planning.domain.geometry import measure_line
+from planning.domain.values import (
+    Avoidance,
+    Coordinate,
+    ProgressPoint,
+    ProviderRoute,
+    RouteRequest,
+    RouteSource,
+    Vehicle,
+)
 from planning.errors import InvalidRequest, NoRoadRoute, Rejection, UpstreamUnavailable
 from planning.services.route_options import RouteBounds, RouteSearch, find_routes
 from planning.tests.services.support import (
@@ -223,3 +232,73 @@ async def test_an_alternative_over_the_maximum_is_dropped() -> None:
     )
 
     assert sources(result) == [RouteSource.FASTEST]
+
+
+def _route_through(points: list[Coordinate], speed_kmh: float = 85.0) -> ProviderRoute:
+    line = measure_line(points)
+    seconds_per_km = 3600.0 / speed_kmh
+    return ProviderRoute(
+        points=line.points,
+        distance_km=line.length_km,
+        travel_time_s=line.length_km * seconds_per_km,
+        progress=tuple(
+            ProgressPoint(point_index=index, distance_km=km, elapsed_s=km * seconds_per_km)
+            for index, km in enumerate(line.cumulative_km)
+        ),
+        ferry_sections=(),
+    )
+
+
+def _mostly_fastest(shared_share: float) -> ProviderRoute:
+    split = int(len(FASTEST.points) * shared_share)
+    tail = route(origin=FASTEST.points[split], bow_share=0.3)
+    return _route_through([*FASTEST.points[:split], *tail.points[1:]])
+
+
+SIMILAR = _mostly_fastest(0.85)
+SLOW_SOUTH = route(bow_share=-0.2, speed_kmh=45.0)
+
+
+async def test_a_similar_route_fills_the_third_place_when_the_rounds_run_out() -> None:
+    provider = ScriptedRoutes([(FASTEST, NORTH), (SIMILAR,), (REPEAT,), (REPEAT,), (REPEAT,)])
+
+    result = await search(provider)
+
+    assert sources(result) == [RouteSource.FASTEST, RouteSource.ALTERNATIVE, RouteSource.SIMILAR]
+    assert result.routes[2].route is SIMILAR
+
+
+async def test_a_slower_route_fills_the_third_place_when_the_rounds_run_out() -> None:
+    provider = ScriptedRoutes([(FASTEST, NORTH), (SLOW_SOUTH,), (REPEAT,), (REPEAT,), (REPEAT,)])
+
+    result = await search(provider)
+
+    assert sources(result) == [RouteSource.FASTEST, RouteSource.ALTERNATIVE, RouteSource.SLOWER]
+
+
+async def test_the_most_different_set_aside_route_is_kept_first() -> None:
+    provider = ScriptedRoutes([(FASTEST,), (SIMILAR,), (SLOW_SOUTH,), (REPEAT,), (REPEAT,)])
+
+    result = await search(provider)
+
+    assert sources(result) == [RouteSource.FASTEST, RouteSource.SLOWER, RouteSource.SIMILAR]
+
+
+async def test_repeats_and_very_slow_routes_never_fill_a_place() -> None:
+    provider = ScriptedRoutes([(FASTEST, NORTH, REPEAT), (CRAWL,), (REPEAT,), (REPEAT,), (CRAWL,)])
+
+    result = await search(provider)
+
+    assert sources(result) == [RouteSource.FASTEST, RouteSource.ALTERNATIVE]
+
+
+async def test_distinct_routes_found_in_the_rounds_win_over_set_aside_ones() -> None:
+    provider = ScriptedRoutes([(FASTEST, SIMILAR), (NORTH,), (SOUTH,)])
+
+    result = await search(provider)
+
+    assert sources(result) == [
+        RouteSource.FASTEST,
+        RouteSource.AVOID_TOLLS,
+        RouteSource.AVOID_HIGHWAYS,
+    ]
